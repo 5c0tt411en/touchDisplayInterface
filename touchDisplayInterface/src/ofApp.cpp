@@ -6,7 +6,7 @@ void ofApp::setup(){
     ofDisableSmoothing();
     
     fontArea.load("NotoSansCJKjp-Regular.otf", 18);
-    fontAreaNum.load("Futura", 70);
+    fontAreaNum.load("futura_book.otf", 70);
     fontSelectArea.load("NotoSansCJKjp-Regular.otf", 50);
     fontSelectCity.load("NotoSansCJKjp-Regular.otf", 50);
     fontBackButtonn.load("NotoSansCJKjp-Regular.otf", 50);
@@ -15,7 +15,7 @@ void ofApp::setup(){
     //    ofSetFullscreen(TRUE);
     ofBackground(0);
     
-    ofBuffer buffer = ofBufferFromFile("list.csv");
+    ofBuffer buffer = ofBufferFromFile("listHD.csv");
     string sp = buffer.getText();
     ofStringReplace(sp, "\r", ",");
     splitString = ofSplitString(sp, ",", true, true);
@@ -63,6 +63,10 @@ void ofApp::update(){
                 timeStamp = ofGetElapsedTimef();
                 stat = ST_ARWAIT;
             }
+            if (value0 == 2) {
+                timeStamp = ofGetElapsedTimef();
+                stat = ST_BLWAIT;
+            }
             break;
             
         case ST_ARWAIT:
@@ -76,6 +80,11 @@ void ofApp::update(){
                 timeStamp = ofGetElapsedTimef();
                 stat = ST_TOCIANIM;
                 trigger = false;
+            }
+            
+            if (value0 == 2) {
+                timeStamp = ofGetElapsedTimef();
+                stat = ST_BLWAIT;
             }
             break ;
             
@@ -99,7 +108,14 @@ void ofApp::update(){
             }
             if (tick > easeEnd + 1) {
                 timeStamp = ofGetElapsedTimef();
+                timeStampDia = ofGetElapsedTimef();
+                frameStamp = ofGetFrameNum();
                 stat = ST_CIWAIT;
+            }
+            
+            if (value0 == 2) {
+                timeStamp = ofGetElapsedTimef();
+                stat = ST_BLWAIT;
             }
             break;
             
@@ -156,6 +172,11 @@ void ofApp::update(){
                 trigger = false;
                 
             }
+            
+            if (value0 == 2) {
+                timeStamp = ofGetElapsedTimef();
+                stat = ST_BLWAIT;
+            }
             break;
             
         case ST_TODEANIM:
@@ -181,12 +202,17 @@ void ofApp::update(){
                     trigger = false;
                     if (cityIndex <= 22) {
                         ofxOscMessage m;
-                        //                    m.setAddress("");
+                        m.setAddress("/touch");
                         m.addIntArg(cityIndex);
                         sender.sendMessage(m);
                         
                     }
                 }
+            }
+            
+            if (value0 == 2) {
+                timeStamp = ofGetElapsedTimef();
+                stat = ST_BLWAIT;
             }
             break;
             
@@ -205,6 +231,11 @@ void ofApp::update(){
                 camPos = ofVec3f(ofGetWidth() / 2, ofGetHeight() / 2, -694);
                 col1 = ofColor(240, 125, 138, 220);
                 col2 = ofColor(255);
+            }
+            
+            if (value0 == 2) {
+                timeStamp = ofGetElapsedTimef();
+                stat = ST_BLWAIT;
             }
             break;
             
@@ -639,7 +670,7 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    
+    if (key == 'f') ofToggleFullscreen();
 }
 
 //--------------------------------------------------------------
@@ -692,9 +723,6 @@ int ofApp::getIndex(int x, int y) {
                     break;
                 }
                 else index = 100;
-//                cout << ofToString(distanceX) << '\n';
-//                cout << ofToString(distanceY) << '\n';
-//                cout << ofToString(index) << '\n';
             }
             break;
         case 2:
@@ -737,38 +765,19 @@ int ofApp::getIndex(int x, int y) {
             }
             break;
         case 5:
-            for (int i = 12; i < 16; i++) {
-                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-                                      - (float(x) / mapScale + offsetX)),
-                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-                                - (float(y) / mapScale + offsetY));
-                if (distanceX < 20 && distanceY < 20) {
-                    index = int(i + 1);
-                    break;
+            for (int i = 12; i < 22; i++) {
+                if (i != 16 && i != 17 && i != 19 && i != 20) {
+                    float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                          - (float(x) / mapScale + offsetX)),
+                    distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                                    - (float(y) / mapScale + offsetY));
+                    if (distanceX < 20 && distanceY < 20) {
+                        index = int(i + 1);
+                        break;
+                    }
+                    else index = 100;
                 }
-                else index = 100;
-            }
-            for (int i = 18; i < 19; i++) {
-                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-                                      - (float(x) / mapScale + offsetX)),
-                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-                                - (float(y) / mapScale + offsetY));
-                if (distanceX < 20 && distanceY < 20) {
-                    index = int(i + 1);
-                    break;
-                }
-                else index = 100;
-            }
-            for (int i = 21; i < 22; i++) {
-                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-                                      - (float(x) / mapScale + offsetX)),
-                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-                                - (float(y) / mapScale + offsetY));
-                if (distanceX < 20 && distanceY < 20) {
-                    index = int(i + 1);
-                    break;
-                }
-                else index = 100;
+                
             }
             break;
         case 6:
@@ -874,6 +883,19 @@ void ofApp::cityText(int n) {
     fontSelectArea.drawString("都市を選択してください", 0, 0);
     ofPopMatrix();
     
+    int p;
+   /* if (n == 4) p = 5;
+    else if (n == 5) p = 4;
+    else if (n == 7) p = 8;
+    else if (n == 8) p = 7;
+    else if (n == 12) p = 14;
+    else if (n == 14) p = 12;
+    else */if (n == 13) p = 15;
+    else if (n == 15) p = 13;
+    else if (n == 16) p = 19;
+    else if (n == 19) p = 16;
+    else p = n;
+    
     int pos = n;
     if (n >= 3 && n < 6) pos -= 3;
     else if (n >= 6 && n < 10) pos -= 6;
@@ -885,9 +907,9 @@ void ofApp::cityText(int n) {
     else if (n == 21) pos -= 16;
     ofPushMatrix();
     ofRotateX(180);
-    ofTranslate(ofGetWidth() * 7.5 / (mapScale * 8) + offsetX - fontSelectCity.stringWidth(ofToString(splitString[n * 4]) + " (" + ofToString(splitString[n * 4 + 1]) + ")") / (mapScale * 2), -ofGetHeight() * (pos + 2) / (mapScale * 7) - offsetY + 10);
+    ofTranslate(ofGetWidth() * 7.5 / (mapScale * 8) + offsetX - fontSelectCity.stringWidth(ofToString(splitString[p * 4]) + " (" + ofToString(splitString[p * 4 + 1]) + ")") / (mapScale * 2), -ofGetHeight() * (pos + 2) / (mapScale * 7) - offsetY + 10);
     ofScale(1 / (mapScale * 2), 1 / (mapScale * 2));
-    fontSelectCity.drawString(ofToString(splitString[n * 4]) + " (" + ofToString(splitString[n * 4 + 1]) + ")", 0, 0);
+    fontSelectCity.drawString(ofToString(splitString[p * 4]) + " (" + ofToString(splitString[p * 4 + 1]) + ")", 0, 0);
     ofPopMatrix();
 }
 
@@ -997,29 +1019,45 @@ void ofApp::debugScale() {
 }
 
 void ofApp::annotation(int n) {
-    if (tick <= 0.1) timeStampDia = ofGetElapsedTimef();
-    if (circleAlpha >= 253) timeStampDia = ofGetElapsedTimef();
-    circleAlpha+=1;
+    if (tick == 0) timeStampDia = ofGetElapsedTimef();
+    if (circleAlpha >= 255) timeStampDia = ofGetElapsedTimef();
+    circleAlpha = ofGetFrameNum() - frameStamp;
+    if (circleAlpha >= 255) frameStamp = ofGetFrameNum();
     circleDia = ofGetElapsedTimef() - timeStampDia;
-    if (circleAlpha >= 255) circleAlpha = 0;
-            ofSetColor(col1, 255 - circleAlpha);
-            ofFill();
-            ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 5.2 / mapScale);
-            ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 3.3 / mapScale);
-            ofNoFill();
-            ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 1) * 6.4 / mapScale);
-            ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 2) * 7.4 / mapScale);
-            ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 4) * 10.9 / mapScale);
-            ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 5) * 13.4 / mapScale);
-            
-            ofSetColor(col1, 255 - circleAlpha);
-            ofFill();
-            ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), diameter);
-            ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), diameter / 2);
+    ofSetColor(col1, 255 - circleAlpha);
+    ofNoFill();
+    ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 8.2 / mapScale);
+    ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 6.3 / mapScale);
+    ofFill();
+    ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 10.2 / mapScale);
+    ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 4.3 / mapScale);
+    ofSetColor(col1,circleAlpha);
+    ofNoFill();
+    if (circleDia <= 3) ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 3) * 5.4 / mapScale);
+    if (circleDia <= 4)ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 4) * 6.4 / mapScale);
+    if (circleDia <= 5) ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 5) * 6.9 / mapScale);
+    if (circleDia <= 6) ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 6) * 7.4 / mapScale);
+    ofSetColor(col1, 255 - circleAlpha);
+    ofFill();
+    ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), diameter / mapScale);
+    ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), diameter / 2 / mapScale);
 //        }
 //    }
     
     ofSetLineWidth(3);
+    int p;
+   /* if (n == 4) p = 5;
+    else if (n == 5) p = 4;
+    else if (n == 7) p = 8;
+    else if (n == 8) p = 7;
+    else if (n == 12) p = 14;
+    else if (n == 14) p = 12;
+    else */if (n == 13) p = 15;
+    else if (n == 15) p = 13;
+    else if (n == 16) p = 19;
+    else if (n == 19) p = 16;
+    else p = n;
+    
     int pos = n;
     if (n >= 3 && n < 6) pos -= 3;
     else if (n >= 6 && n < 10) pos -= 6;
@@ -1032,10 +1070,10 @@ void ofApp::annotation(int n) {
 
     if (tick < 1 ) ofSetColor(col1, tick * 220);
     else if (tick >= 1)  ofSetColor(col1);
-                float x1 = ofToFloat(splitString[n * 4 + 2]);
-                float y1 = ofToFloat(splitString[n * 4 + 3]);
-                float x2 = ofGetWidth() * 7.5 / (mapScale * 8) + offsetX - fontSelectCity.stringWidth(ofToString(splitString[n * 4]) + " (" + ofToString(splitString[n * 4 + 1]) + ")") / (mapScale * 2);
-                float y2 = +ofGetHeight() * (pos + 2) / (mapScale * 7) + offsetY - 13;
+                float x1 = ofToFloat(splitString[p * 4 + 2]);
+                float y1 = ofToFloat(splitString[p * 4 + 3]);
+                float x2 = ofGetWidth() * 7.5 / (mapScale * 8) + offsetX - fontSelectCity.stringWidth(ofToString(splitString[p * 4]) + " (" + ofToString(splitString[p * 4 + 1]) + ")") / (mapScale * 2);
+                float y2 = ofGetHeight() * (pos + 2) / (mapScale * 7) + offsetY - 13;
     if (y1 < y2) {
         ofDrawLine(x1, y1, x1 + y2 - y1, y2);
         ofDrawLine(x1 + y2 - y1, y2, x2, y2);
@@ -1043,7 +1081,7 @@ void ofApp::annotation(int n) {
     else if (y1 == y2) {
         ofDrawLine(x1, y2, x2, y2);
     }
-    if (y1 > y2) {
+    else if (y1 > y2) {
         ofDrawLine(x1, y1, x1 - y2 + y1, y2);
         ofDrawLine(x1 - y2 + y1, y2, x2, y2);
     }

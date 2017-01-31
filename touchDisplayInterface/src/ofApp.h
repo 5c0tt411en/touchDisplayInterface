@@ -101,4 +101,6 @@ public:
     int circleAlpha;
     float circleDia;
     float timeStampDia;
+    int frameStamp;
+    float dia;
 };
