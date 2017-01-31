@@ -139,7 +139,6 @@ void ofApp::update(){
                     break;
             }
             if (trigger) {
-//                cout << ofToString(backButtonPressed(ofGetWidth() / 8, ofGetHeight() * 7 / 8, mouseX, mouseY));
                 cityIndex = getIndex(mouseX, mouseY);
                 if (backButtonPressed(ofGetWidth() / 8, ofGetHeight() * 7 / 8, mouseX, mouseY)) {
                     stat = ST_ARWAIT;
@@ -249,7 +248,6 @@ void ofApp::draw(){
             ofSetColor(255);
             maskedImage.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
             if (tick < 3) opCircle(50 + tick * ofGetWidth() / 3);
-//            ofDrawLine(50 + tick * ofGetWidth() / 3, 0, 50 + tick * ofGetWidth() / 3, ofGetHeight());
             ofSetColor(col2, 85 * (tick - 3));
             img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
             
@@ -366,7 +364,7 @@ void ofApp::draw(){
         case ST_CIWAIT:
 //            debugScale();
             img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
-            cout << ofToString(float((mouseX / mapScale) + offsetX)) << " , " << ofToString(float((mouseY / mapScale) + offsetY)) << '\n';
+//            cout << ofToString(float((mouseX / mapScale) + offsetX)) << " , " << ofToString(float((mouseY / mapScale) + offsetY)) << '\n';
             
             
             ofSetColor(col1, 220 - tick * 220);
@@ -682,11 +680,117 @@ void ofApp::mouseExited(int x, int y){
 //--------------------------------------------------------------
 int ofApp::getIndex(int x, int y) {
     int index;
-    for (int i = 0; i < int(splitString.size() / 4); i++) {
-        if (abs(ofToFloat(splitString[i * 4 + 2]) - (float(x) / mapScale + offsetX)) < 20 && abs(ofToFloat(splitString[i * 4 + 3]) - (float(y) / mapScale + offsetY)) < 20) index = int(i + 1);
-        if (index >= 100) index = 100;
+    switch (area) {
+        case 1:
+            for (int i = 0; i < 3; i++) {
+                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                      - (float(x) / mapScale + offsetX)),
+                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                                - (float(y) / mapScale + offsetY));
+                if (distanceX < 20 && distanceY < 20) {
+                    index = int(i + 1);
+                    break;
+                }
+                else index = 100;
+//                cout << ofToString(distanceX) << '\n';
+//                cout << ofToString(distanceY) << '\n';
+//                cout << ofToString(index) << '\n';
+            }
+            break;
+        case 2:
+            for (int i = 3; i < 6; i++) {
+                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                      - (float(x) / mapScale + offsetX)),
+                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                                - (float(y) / mapScale + offsetY));
+                if (distanceX < 20 && distanceY < 20) {
+                    index = int(i + 1);
+                    break;
+                }
+                else index = 100;
+            }
+            break;
+        case 3:
+            for (int i = 6; i < 10; i++) {
+                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                      - (float(x) / mapScale + offsetX)),
+                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                                - (float(y) / mapScale + offsetY));
+                if (distanceX < 20 && distanceY < 20) {
+                    index = int(i + 1);
+                    break;
+                }
+                else index = 100;
+            }
+            break;
+        case 4:
+            for (int i = 10; i < 12; i++) {
+                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                      - (float(x) / mapScale + offsetX)),
+                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                                - (float(y) / mapScale + offsetY));
+                if (distanceX < 20 && distanceY < 20) {
+                    index = int(i + 1);
+                    break;
+                }
+                else index = 100;
+            }
+            break;
+        case 5:
+            for (int i = 12; i < 16; i++) {
+                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                      - (float(x) / mapScale + offsetX)),
+                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                                - (float(y) / mapScale + offsetY));
+                if (distanceX < 20 && distanceY < 20) {
+                    index = int(i + 1);
+                    break;
+                }
+                else index = 100;
+            }
+            for (int i = 18; i < 19; i++) {
+                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                      - (float(x) / mapScale + offsetX)),
+                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                                - (float(y) / mapScale + offsetY));
+                if (distanceX < 20 && distanceY < 20) {
+                    index = int(i + 1);
+                    break;
+                }
+                else index = 100;
+            }
+            for (int i = 21; i < 22; i++) {
+                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                      - (float(x) / mapScale + offsetX)),
+                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                                - (float(y) / mapScale + offsetY));
+                if (distanceX < 20 && distanceY < 20) {
+                    index = int(i + 1);
+                    break;
+                }
+                else index = 100;
+            }
+            break;
+        case 6:
+            for (int i = 16; i < 21; i++) {
+                if (i != 18) {
+                    float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                          - (float(x) / mapScale + offsetX)),
+                    distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                                    - (float(y) / mapScale + offsetY));
+                    if (distanceX < 20 && distanceY < 20) {
+                        index = int(i + 1);
+                        break;
+                    }
+                    else index = 100;
+                }
+            }
+            break;
+        default:
+            break;
     }
-    cout << ofToString(index);
+    
+    cout << ofToString(index) << '\n';
     return index;
 }
 
