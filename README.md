@@ -2,6 +2,10 @@
 - touchDiplayInterface(MacOS Xcode)
 - touchDisplayWIN(Windows Visual Studio)
 
+## 実行ファイル
+- MacOS: touchDiplayInterface/bin/touchDisplayInterface.app
+- Windows: touchDisplayWIN/bin/touchDisplayWIN.exe
+
 ## 仕様
 ### フローチャート
 OSCを受けてスタート，ディスプレイをタップしOSC送信，OSCを受けてループします．
