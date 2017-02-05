@@ -2,6 +2,9 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    //    ofSetWindowPosition(2000, 0);
+    //    ofSetFullscreen(TRUE);
+
     ofSetCircleResolution(60);
     ofDisableSmoothing();
     
@@ -11,11 +14,10 @@ void ofApp::setup(){
     fontSelectCity.load("NotoSansCJKjp-Regular.otf", 50);
     fontBackButtonn.load("NotoSansCJKjp-Regular.otf", 50);
     value0 = 10;
-    //    ofSetWindowPosition(2000, 0);
-    //    ofSetFullscreen(TRUE);
     ofBackground(0);
     
-    ofBuffer buffer = ofBufferFromFile("listHD.csv");
+    // csv buffrering
+    ofBuffer buffer = ofBufferFromFile("list.csv");
     string sp = buffer.getText();
     ofStringReplace(sp, "\r", ",");
     splitString = ofSplitString(sp, ",", true, true);
@@ -49,7 +51,7 @@ void ofApp::update(){
     
     switch(stat) {
         case ST_BLWAIT:
-            if (value0 == 0 || trigger) {
+            if (value0 == 0) {
                 timeStamp = ofGetElapsedTimef();
                 trigger = false;
                 stat = ST_TOARANIM;
@@ -90,21 +92,41 @@ void ofApp::update(){
             
         case ST_TOCIANIM:
             trigger = false;
-            switch (area) {
-                case 1:
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    break;
-                case 5:
-                    break;
-                case 6:
-                    break;
-                default:
-                    break;
+            if (tick >= 1) {
+                switch (area) {
+                    case 1:
+                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b12, easeEnd);
+                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 200, easeEnd);
+                        camPos.z = easeInOutCubic(tick - 1, -694, 500, easeEnd);
+                        break;
+                    case 2:
+                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b23 - 40, easeEnd);
+                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 200, easeEnd);
+                        camPos.z = easeInOutCubic(tick - 1, -694, 450, easeEnd);
+                        break;
+                    case 3:
+                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b34 - 40, easeEnd);
+                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 30, easeEnd);
+                        camPos.z = easeInOutCubic(tick - 1, -694, 380, easeEnd);
+                        break;
+                    case 4:
+                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b45 - 40, easeEnd);
+                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, + 50, easeEnd);
+                        camPos.z = easeInOutCubic(tick - 1, -694, 360, easeEnd);
+                        break;
+                    case 5:
+                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b56 - 20, easeEnd);
+                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 200, easeEnd);
+                        camPos.z = easeInOutCubic(tick - 1, -694, 450, easeEnd);
+                        break;
+                    case 6:
+                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 3 + b56, easeEnd);
+                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 100, easeEnd);
+                        camPos.z = easeInOutCubic(tick - 1, -694, 300, easeEnd);
+                        break;
+                    default:
+                        break;
+                }
             }
             if (tick > easeEnd + 1) {
                 timeStamp = ofGetElapsedTimef();
@@ -112,7 +134,6 @@ void ofApp::update(){
                 frameStamp = ofGetFrameNum();
                 stat = ST_CIWAIT;
             }
-            
             if (value0 == 2) {
                 timeStamp = ofGetElapsedTimef();
                 stat = ST_BLWAIT;
@@ -170,9 +191,7 @@ void ofApp::update(){
                 timeStamp = ofGetElapsedTimef();
                 stat = ST_TODEANIM;
                 trigger = false;
-                
             }
-            
             if (value0 == 2) {
                 timeStamp = ofGetElapsedTimef();
                 stat = ST_BLWAIT;
@@ -191,7 +210,6 @@ void ofApp::update(){
             if (trigger) {
                 if (backButtonPressed(ofGetWidth() / 4, ofGetHeight() * 4 / 5, mouseX, mouseY)) {
                     stat = ST_CIWAIT;
-//                    camPos = ofVec3f(ofGetWidth() / 2, ofGetHeight() / 2, -694);
                     timeStamp = ofGetElapsedTimef();
                     trigger = false;
                     break;
@@ -205,11 +223,9 @@ void ofApp::update(){
                         m.setAddress("/touch");
                         m.addIntArg(cityIndex);
                         sender.sendMessage(m);
-                        
                     }
                 }
             }
-            
             if (value0 == 2) {
                 timeStamp = ofGetElapsedTimef();
                 stat = ST_BLWAIT;
@@ -232,7 +248,6 @@ void ofApp::update(){
                 col1 = ofColor(240, 125, 138, 220);
                 col2 = ofColor(255);
             }
-            
             if (value0 == 2) {
                 timeStamp = ofGetElapsedTimef();
                 stat = ST_BLWAIT;
@@ -247,7 +262,6 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     tick = ofGetElapsedTimef() - timeStamp ;
-    
     ofEnableBlendMode(OF_BLENDMODE_ADD);
     
     fbo.begin();
@@ -322,7 +336,6 @@ void ofApp::draw(){
             break ;
             
         case ST_TOCIANIM:
-            
             img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
             
             if (tick >= 1) ofSetColor(col2, 255 - (tick - 1) * 255);
@@ -353,151 +366,49 @@ void ofApp::draw(){
                 ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
                 ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
             }
-            if (tick >= 1) {
-                switch (area) {
-                    case 1:
-                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b12, easeEnd);
-                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 200, easeEnd);
-                        camPos.z = easeInOutCubic(tick - 1, -694, 500, easeEnd);
-                        break;
-                    case 2:
-                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b23 - 40, easeEnd);
-                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 200, easeEnd);
-                        camPos.z = easeInOutCubic(tick - 1, -694, 450, easeEnd);
-                        break;
-                    case 3:
-                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b34 - 40, easeEnd);
-                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 30, easeEnd);
-                        camPos.z = easeInOutCubic(tick - 1, -694, 380, easeEnd);
-                        break;
-                    case 4:
-                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b45 - 40, easeEnd);
-                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, + 50, easeEnd);
-                        camPos.z = easeInOutCubic(tick - 1, -694, 360, easeEnd);
-                        break;
-                    case 5:
-                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 2 + b56 - 20, easeEnd);
-                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 200, easeEnd);
-                        camPos.z = easeInOutCubic(tick - 1, -694, 450, easeEnd);
-                        break;
-                    case 6:
-                        camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, - ofGetWidth() / 3 + b56, easeEnd);
-                        camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, - 100, easeEnd);
-                        camPos.z = easeInOutCubic(tick - 1, -694, 300, easeEnd);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            
             break;
             
         case ST_CIWAIT:
 //            debugScale();
             img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
-//            cout << ofToString(float((mouseX / mapScale) + offsetX)) << " , " << ofToString(float((mouseY / mapScale) + offsetY)) << '\n';
-            
-            
             ofSetColor(col1, 220 - tick * 220);
             switch (area) {
                 case 1:
-                    for (int i = 0; i < 3; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                        annotation(i);
-                        ofSetColor(col2, 0);
-                        if (tick <= 1.0) ofSetColor(col2, tick * 255);
-                        else if (tick > 1.0)ofSetColor(col2);
-                        cityText(i);
-                    }
-                    
+                    cityFrom = 0;
+                    cityTo = 3;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 2:
-                    for (int i = 3; i < 6; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                        annotation(i);
-                        ofSetColor(col2, 0);
-                        if (tick <= 1.0) ofSetColor(col2, tick * 255);
-                        else if (tick > 1.0)ofSetColor(col2);
-                        cityText(i);
-                    }
+                    cityFrom = 3;
+                    cityTo = 6;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 3:
-                    for (int i = 6; i < 10; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                        annotation(i);
-                        ofSetColor(col2, 0);
-                        if (tick <= 1.0) ofSetColor(col2, tick * 255);
-                        else if (tick > 1.0)ofSetColor(col2);
-                        cityText(i);
-                    }
+                    cityFrom = 6;
+                    cityTo = 10;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 4:
-                    for (int i = 10; i < 12; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                        annotation(i);
-                        ofSetColor(col2, 0);
-                        if (tick <= 1.0) ofSetColor(col2, tick * 255);
-                        else if (tick > 1.0)ofSetColor(col2);
-                        cityText(i);
-                    }
+                    cityFrom = 10;
+                    cityTo = 12;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 5:
-                    for (int i = 12; i < 16; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                        annotation(i);
-                        ofSetColor(col2, 0);
-                        if (tick <= 1.0) ofSetColor(col2, tick * 255);
-                        else if (tick > 1.0)ofSetColor(col2);
-                        cityText(i);
-                    }
-                    for (int i = 18; i < 19; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                        annotation(i);
-                        ofSetColor(col2, 0);
-                        if (tick <= 1.0) ofSetColor(col2, tick * 255);
-                        else if (tick > 1.0)ofSetColor(col2);
-                        cityText(i);
-                    }
-                    for (int i = 21; i < 22; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                        annotation(i);
-                        ofSetColor(col2, 0);
-                        if (tick <= 1.0) ofSetColor(col2, tick * 255);
-                        else if (tick > 1.0)ofSetColor(col2);
-                        cityText(i);
-                    }
+                    cityFrom = 12;
+                    cityTo = 16;
+                    cityPointDraw(cityFrom, cityTo);
+                    cityPointDraw(18);
+                    cityPointDraw(21);
                     break;
                 case 6:
-                    for (int i = 16; i < 21; i++) {
-                        if (i != 18) {
-                            ofSetColor(col1);
-                            ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                            ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                            annotation(i);
-                            ofSetColor(col2, 0);
-                            if (tick <= 1.0) ofSetColor(col2, tick * 255);
-                            else if (tick > 1.0)ofSetColor(col2);
-                            cityText(i);
-                        }
-                    }
+                    cityFrom = 16;
+                    cityTo = 21;
+                    cityPointDraw(cityFrom, cityTo, 18);
                     break;
                 default:
                     break;
             }
+            
             backButton(ofGetWidth() / 8, ofGetHeight() * 7 / 8);
             break;
             
@@ -506,62 +417,48 @@ void ofApp::draw(){
             img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
             ofSetColor(col1);
             ofFill();
+            
             switch (area) {
                 case 1:
-                    for (int i = 0; i < 3; i++) {
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 0;
+                    cityTo = 3;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 2:
-                    for (int i = 3; i < 6; i++) {
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 3;
+                    cityTo = 6;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 3:
-                    for (int i = 6; i < 10; i++) {
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 6;
+                    cityTo = 10;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 4:
-                    for (int i = 10; i < 12; i++) {
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 10;
+                    cityTo = 12;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 5:
-                    for (int i = 12; i < 16; i++) {
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
-                    for (int i = 18; i < 19; i++) {
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
-                    for (int i = 21; i < 22; i++) {
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 12;
+                    cityTo = 16;
+                    cityPointDraw(cityFrom, cityTo);
+                    cityPointDraw(18);
+                    cityPointDraw(21);
                     break;
                 case 6:
-                    for (int i = 16; i < 21; i++) {
-                        if (i != 18) {
-                            ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                            ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                        }
-                    }
+                    cityFrom = 16;
+                    cityTo = 21;
+                    cityPointDraw(cityFrom, cityTo, 18);
                     break;
                 default:
                     break;
             }
+
             ofEnableBlendMode(OF_BLENDMODE_ALPHA);
             ofSetColor(0, 123);
             ofPushMatrix();
-            ofTranslate(offsetX, offsetY + easeInOutCubic(tick,
-                                                          (-(ofGetHeight() / 2) / mapScale),
-                                                          ((ofGetHeight() * 3 / 4) / mapScale), easeEnd));
+            ofTranslate(offsetX, offsetY + easeInOutCubic(tick, (-(ofGetHeight() / 2) / mapScale), ((ofGetHeight() * 3 / 4) / mapScale), easeEnd));
             ofScale(1 / (mapScale), 1 / (mapScale));
             ofDrawRectangle(0, 0,
                             ofGetWidth(),
@@ -571,100 +468,71 @@ void ofApp::draw(){
             break;
             
         case ST_DEWAIT:
-//            ofSetColor(30, 200);
-//            ofDrawRectangle(0, - ofGetWidth() * 3 / (8 * mapScale) - offsetY,
-//                            ofGetWidth(), -ofGetHeight() / (2  * mapScale));
             ofSetColor(col2);
             img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
-            //            ofDrawBitmapStringHighlight("select the point of the city", ofGetWidth() / 2 - 50, 20);
+            
             switch (area) {
                 case 1:
-                    for (int i = 0; i < 3; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 0;
+                    cityTo = 3;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 2:
-                    for (int i = 3; i < 6; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 3;
+                    cityTo = 6;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 3:
-                    for (int i = 6; i < 10; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 6;
+                    cityTo = 10;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 4:
-                    for (int i = 10; i < 12; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 10;
+                    cityTo = 12;
+                    cityPointDraw(cityFrom, cityTo);
                     break;
                 case 5:
-                    for (int i = 12; i < 16; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
-                    for (int i = 18; i < 19; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
-                    for (int i = 21; i < 22; i++) {
-                        ofSetColor(col1);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                    }
+                    cityFrom = 12;
+                    cityTo = 16;
+                    cityPointDraw(cityFrom, cityTo);
+                    cityPointDraw(18);
+                    cityPointDraw(21);
                     break;
                 case 6:
-                    for (int i = 16; i < 21; i++) {
-                        if (i != 18) {
-                            ofSetColor(col1);
-                            ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-                            ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
-                        }
-                    }
+                    cityFrom = 16;
+                    cityTo = 21;
+                    cityPointDraw(cityFrom, cityTo, 18);
                     break;
                 default:
                     break;
             }
+
             ofEnableBlendMode(OF_BLENDMODE_ALPHA);
             ofSetColor(0, 123);
             ofPushMatrix();
             ofTranslate(offsetX, offsetY + (ofGetHeight() / 4) / mapScale);
             ofScale(1 / (mapScale), 1 / (mapScale));
-            ofDrawRectangle(0, 0,
-                            ofGetWidth(),
-                            ofGetHeight() / 1.5);
+            ofDrawRectangle(0, 0, ofGetWidth(), ofGetHeight() / 1.5);
             ofPopMatrix();
             ofEnableBlendMode(OF_BLENDMODE_ADD);
 
             ofSetColor(col2);
             detText(cityIndex - 1);
             backButton(ofGetWidth() / 4, ofGetHeight() * 4 / 5);
-                        goButton(ofGetWidth() * 3 / 4, ofGetHeight() * 4 / 5);
+            goButton(ofGetWidth() * 3 / 4, ofGetHeight() * 4 / 5);
             break;
             
         case ST_FADEOUT:
             ofSetColor(col2 / 2 - tick * 42.5);
             img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
-            //            ofDrawBitmapStringHighlight("select the point of the city", ofGetWidth() / 2 - 50, 20);
             break;
             
         default:
             break;
     }
-    
     cam.end();
     fbo.end();
-    
     fbo.draw(ofGetWidth(),ofGetHeight(), -ofGetWidth(), -ofGetHeight());
 }
 
@@ -713,93 +581,73 @@ int ofApp::getIndex(int x, int y) {
     int index;
     switch (area) {
         case 1:
-            for (int i = 0; i < 3; i++) {
-                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-                                      - (float(x) / mapScale + offsetX)),
-                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-                                - (float(y) / mapScale + offsetY));
-                if (distanceX < 20 && distanceY < 20) {
-                    index = int(i + 1);
-                    break;
-                }
-                else index = 100;
-            }
+            index = getIndexft(x, y, cityFrom, cityTo);
             break;
         case 2:
-            for (int i = 3; i < 6; i++) {
-                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-                                      - (float(x) / mapScale + offsetX)),
-                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-                                - (float(y) / mapScale + offsetY));
-                if (distanceX < 20 && distanceY < 20) {
-                    index = int(i + 1);
-                    break;
-                }
-                else index = 100;
-            }
+            index = getIndexft(x, y, cityFrom, cityTo);
             break;
         case 3:
-            for (int i = 6; i < 10; i++) {
-                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-                                      - (float(x) / mapScale + offsetX)),
-                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-                                - (float(y) / mapScale + offsetY));
-                if (distanceX < 20 && distanceY < 20) {
-                    index = int(i + 1);
-                    break;
-                }
-                else index = 100;
-            }
+            index = getIndexft(x, y, cityFrom, cityTo);
             break;
         case 4:
-            for (int i = 10; i < 12; i++) {
-                float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-                                      - (float(x) / mapScale + offsetX)),
-                distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-                                - (float(y) / mapScale + offsetY));
-                if (distanceX < 20 && distanceY < 20) {
-                    index = int(i + 1);
-                    break;
-                }
-                else index = 100;
-            }
+            index = getIndexft(x, y, cityFrom, cityTo);
             break;
         case 5:
-            for (int i = 12; i < 22; i++) {
-                if (i != 16 && i != 17 && i != 19 && i != 20) {
-                    float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-                                          - (float(x) / mapScale + offsetX)),
-                    distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-                                    - (float(y) / mapScale + offsetY));
-                    if (distanceX < 20 && distanceY < 20) {
-                        index = int(i + 1);
-                        break;
-                    }
-                    else index = 100;
-                }
-                
-            }
+            index = getIndexft(x, y, cityFrom, cityTo);
+            if (index > 22) index = getIndexp(x, y, 18);
+            if (index > 22) index = getIndexp(x, y, 21);
             break;
         case 6:
-            for (int i = 16; i < 21; i++) {
-                if (i != 18) {
-                    float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-                                          - (float(x) / mapScale + offsetX)),
-                    distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-                                    - (float(y) / mapScale + offsetY));
-                    if (distanceX < 20 && distanceY < 20) {
-                        index = int(i + 1);
-                        break;
-                    }
-                    else index = 100;
-                }
-            }
+            index = getIndexftex(x, y, cityFrom, cityTo, 18);
             break;
         default:
             break;
     }
-    
-    cout << ofToString(index) << '\n';
+    return index;
+}
+
+int ofApp::getIndexft(int x, int y, int f, int t) {
+    int index;
+    for (int i = f; i < t; i++) {
+        float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                              - (float(x) / mapScale + offsetX)),
+        distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                        - (float(y) / mapScale + offsetY));
+        if (distanceX < 20 && distanceY < 20) {
+            index = int(i + 1);
+            break;
+        }
+        else index = 100;
+    }
+    return index;
+}
+
+int ofApp::getIndexftex(int x, int y, int f, int t, int ex) {
+    int index;
+    for (int i = f; i < t; i++) {
+        if (i != ex) {
+            float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
+                                  - (float(x) / mapScale + offsetX)),
+            distanceY = abs(ofToFloat(splitString[i * 4 + 3])
+                            - (float(y) / mapScale + offsetY));
+            if (distanceX < 20 && distanceY < 20) {
+                index = int(i + 1);
+                break;
+            }
+            else index = 100;
+        }
+    }
+    return index;
+}
+
+int ofApp::getIndexp(int x, int y, int p) {
+    int index;
+    float distanceX = abs(ofToFloat(splitString[p * 4 + 2])
+                          - (float(x) / mapScale + offsetX)),
+    distanceY = abs(ofToFloat(splitString[p * 4 + 3])
+                    - (float(y) / mapScale + offsetY));
+    if (distanceX < 20 && distanceY < 20) index = int(p + 1);
+    else index = 100;
     return index;
 }
 
@@ -1068,7 +916,8 @@ void ofApp::annotation(int n) {
     else if (n >= 19 && n < 21) pos -= 17;
     else if (n == 21) pos -= 16;
 
-    if (tick < 1 ) ofSetColor(col1, tick * 220);
+    if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col1);
+    else if (tick < 1 ) ofSetColor(col1, tick * 220);
     else if (tick >= 1)  ofSetColor(col1);
                 float x1 = ofToFloat(splitString[p * 4 + 2]);
                 float y1 = ofToFloat(splitString[p * 4 + 3]);
@@ -1087,6 +936,48 @@ void ofApp::annotation(int n) {
     }
     
     ofSetLineWidth(1);
+}
+
+void ofApp::cityPointDraw(int p) {
+    ofSetColor(col1);
+    ofDrawCircle(ofToInt(splitString[p * 4 + 2]), ofToInt(splitString[p * 4 + 3]), diameter);
+    ofDrawCircle(ofToInt(splitString[p * 4 + 2]), ofToInt(splitString[p * 4 + 3]), diameter / 2);
+    annotation(p);
+    ofSetColor(col2, 0);
+    if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col2);
+    else if (tick <= 1.0) ofSetColor(col2, tick * 255);
+    else if (tick > 1.0)ofSetColor(col2);
+    cityText(p);
+}
+
+void ofApp::cityPointDraw(int f, int t) {
+    for (int i = f; i < t; i++) {
+        ofSetColor(col1);
+        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
+        ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
+        annotation(i);
+        ofSetColor(col2, 0);
+        if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col2);
+        else if (tick <= 1.0) ofSetColor(col2, tick * 255);
+        else if (tick > 1.0)ofSetColor(col2);
+        cityText(i);
+    }
+}
+
+void ofApp::cityPointDraw(int f, int t, int ex) {
+    for (int i = f; i < t; i++) {
+        if (i != ex) {
+            ofSetColor(col1);
+            ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
+            ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
+            annotation(i);
+            ofSetColor(col2, 0);
+            if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col2);
+            else if (tick <= 1.0) ofSetColor(col2, tick * 255);
+            else if (tick > 1.0)ofSetColor(col2);
+            cityText(i);
+        }
+    }
 }
 
 //--------------------------------------------------------------

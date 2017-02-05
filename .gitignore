@@ -10,7 +10,7 @@
 
 .svn/
 obj/
-bin/
+other/
 build/
 !data/
 xcuserdata/
@@ -24,6 +24,7 @@ ipch/
 *.opensdf
 *.vcxproj.user
 
+*.app
 *.obj
 *.tlog
 *.sdf
