@@ -8,7 +8,8 @@
 
 ## 仕様
 ### フローチャート
-OSCを受けてスタート，ディスプレイをタップしOSC送信，OSCを受けてループします．
+OSCを受けてスタート，ディスプレイをタップしOSC送信，OSCを受けてループします．  
+"f"キーでフルスクリーンでスタートします．  
 ![Flow](https://github.com/5c0tt411en/touchDisplayInterface/blob/master/images/touchDisplayFlowChart.jpeg)
 
 ### スクリーンショット

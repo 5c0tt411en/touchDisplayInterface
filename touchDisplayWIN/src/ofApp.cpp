@@ -2,36 +2,50 @@
 
 //--------------------------------------------------------------
 void ofApp::setup() {
-	//    ofSetWindowPosition(2000, 0);
-	//    ofSetFullscreen(TRUE);
-
-	ofSetCircleResolution(60);
-	ofDisableSmoothing();
-
-	fontArea.load("NotoSansCJKjp-Regular.otf", 18);
-	fontAreaNum.load("futura_book.otf", 70);
-	fontSelectArea.load("NotoSansCJKjp-Regular.otf", 50);
-	fontSelectCity.load("NotoSansCJKjp-Regular.otf", 50);
-	fontBackButtonn.load("NotoSansCJKjp-Regular.otf", 50);
-	value0 = 10;
-	ofBackground(0);
-
+	// text setting
+	fontArea.load("fonts/NotoSansCJKjp-Regular.otf", 28);
+	fontAreaNum.load("fonts/futura_book.otf", 60);
+	fontSelectArea.load("fonts/NotoSansCJKjp-Regular.otf", 40);
+	fontSelectCity.load("fonts/NotoSansCJKjp-Regular.otf", 40);
+	fontCity.load("fonts/NotoSansCJKjp-Regular.otf", 30);
+	fontDet.load("fonts/NotoSansCJKjp-Regular.otf", 30);
 	// csv buffrering
-	ofBuffer buffer = ofBufferFromFile("list.csv");
+	ofBuffer buffer = ofBufferFromFile("listHD.csv");
 	string sp = buffer.getText();
 	ofStringReplace(sp, "\r", ",");
 	splitString = ofSplitString(sp, ",", true, true);
 
-	cam.setPosition(ofGetWidth() / 2, ofGetHeight() / 2, -694);
+	//button image
+	backButtonUI.load("buttons/backButton.png");
+	goButtonUI.load("buttons/goButton.png");
 
-	fbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA);
-	maskFbo.allocate(5334, 3310, GL_RGBA);
+	// camera
+	cam.setPosition(camDefault);
+	cam.setupPerspective();
 
-	img.load("equirectangular.png");
-	maskedImage.load("equirectangular.png");
+	// background Image & mask
+	fbo.allocate(W, H, GL_RGBA);
+	maskFbo.allocate(4800, 2700, GL_RGBA);
+	img.load("equirectangularHD.png");
+	maskedImage.load("equirectangularHD.png");
 
+	// OSC
 	receiver.setup(RPORT);
 	sender.setup(HOST, SPORT);
+	value0 = 10;
+
+	// city images
+	for (int n = 0; n < 22; n++) {
+		for (int i = 0; i < 2; i++) {
+			cityImage[2 * n + i].load("cityImages/" + splitString[n * 7] + "/" + ofToString(i + 1) + ".jpg");
+			ofLog() << "cityImage[" << 2 * n + i << "] : cityImages/" + splitString[n * 7] + "/" + ofToString(i + 1) + ".jpg";
+		}
+	}
+
+	// OTHERS
+	ofBackground(0);
+	ofSetCircleResolution(60);
+	ofDisableSmoothing();
 }
 
 //--------------------------------------------------------------
@@ -43,12 +57,15 @@ void ofApp::update() {
 		value0 = message.getArgAsInt32(0);
 	}
 
+	// camera
 	pointToView.x = camPos.x;
 	pointToView.y = camPos.y;
-	pointToView.z = 1000;
-
+	pointToView.z = -1000;
 	node.setPosition(pointToView);
 
+	imageScale = mapScale / 2;
+
+	// update
 	switch (stat) {
 	case ST_BLWAIT:
 		if (value0 == 0) {
@@ -78,7 +95,7 @@ void ofApp::update() {
 			else if (mouseX >= b23 && mouseX < b34) area = 3;
 			else if (mouseX >= b34 && mouseX < b45) area = 4;
 			else if (mouseX >= b45 && mouseX < b56) area = 5;
-			else if (mouseX >= b56 && mouseX < ofGetWidth()) area = 6;
+			else if (mouseX >= b56 && mouseX < W) area = 6;
 			timeStamp = ofGetElapsedTimef();
 			stat = ST_TOCIANIM;
 			trigger = false;
@@ -95,34 +112,34 @@ void ofApp::update() {
 		if (tick >= 1) {
 			switch (area) {
 			case 1:
-				camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, -ofGetWidth() / 2 + b12, easeEnd);
-				camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, -200, easeEnd);
-				camPos.z = easeInOutCubic(tick - 1, -694, 500, easeEnd);
+				camPos.x = easeInOutCubic(tick - 1, W / 2, anim1.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, H / 2, anim1.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camDefault.z, anim1.z, easeEnd);
 				break;
 			case 2:
-				camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, -ofGetWidth() / 2 + b23 - 40, easeEnd);
-				camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, -200, easeEnd);
-				camPos.z = easeInOutCubic(tick - 1, -694, 450, easeEnd);
+				camPos.x = easeInOutCubic(tick - 1, W / 2, anim2.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, H / 2, anim2.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camDefault.z, anim2.z, easeEnd);
 				break;
 			case 3:
-				camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, -ofGetWidth() / 2 + b34 - 40, easeEnd);
-				camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, -30, easeEnd);
-				camPos.z = easeInOutCubic(tick - 1, -694, 380, easeEnd);
+				camPos.x = easeInOutCubic(tick - 1, W / 2, anim3.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, H / 2, anim3.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camDefault.z, anim3.z, easeEnd);
 				break;
 			case 4:
-				camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, -ofGetWidth() / 2 + b45 - 40, easeEnd);
-				camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, +50, easeEnd);
-				camPos.z = easeInOutCubic(tick - 1, -694, 360, easeEnd);
+				camPos.x = easeInOutCubic(tick - 1, W / 2, anim4.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, H / 2, anim4.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camDefault.z, anim4.z, easeEnd);
 				break;
 			case 5:
-				camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, -ofGetWidth() / 2 + b56 - 20, easeEnd);
-				camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, -200, easeEnd);
-				camPos.z = easeInOutCubic(tick - 1, -694, 450, easeEnd);
+				camPos.x = easeInOutCubic(tick - 1, W / 2, anim5.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, H / 2, anim5.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camDefault.z, anim5.z, easeEnd);
 				break;
 			case 6:
-				camPos.x = easeInOutCubic(tick - 1, ofGetWidth() / 2, -ofGetWidth() / 3 + b56, easeEnd);
-				camPos.y = easeInOutCubic(tick - 1, ofGetHeight() / 2, -100, easeEnd);
-				camPos.z = easeInOutCubic(tick - 1, -694, 300, easeEnd);
+				camPos.x = easeInOutCubic(tick - 1, W / 2, anim6.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, H / 2, anim6.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camDefault.z, anim6.z, easeEnd);
 				break;
 			default:
 				break;
@@ -143,43 +160,31 @@ void ofApp::update() {
 	case ST_CIWAIT:
 		switch (area) {
 		case 1:
-			mapScale = 3.57756;
-			offsetX = 18.117;
-			offsetY = 88;
+			mapScale = 2.37756;
 			break;
 		case 2:
-			mapScale = 2.84555556;
-			offsetX = 129.12946694;
-			offsetY = 59.31974915;
+			mapScale = 2.37756;
 			break;
 		case 3:
-			mapScale = 2.21410508;
-			offsetX = 355.59161456;
-			offsetY = 189.03079964;
+			mapScale = 1.92746;
 			break;
 		case 4:
-			mapScale = 2.07661688;
-			offsetX = 524.91462248;
-			offsetY = 257.32046293;
+			mapScale = 1.26499342;
 			break;
 		case 5:
-			mapScale = 2.84444444;
-			offsetX = 865.33206681;
-			offsetY = 59.30552731;
+			mapScale = 1.93499;
 			break;
 		case 6:
-			mapScale = 1.76088705;
-			offsetX = 960.917;
-			offsetY = 72.84829585;
+			mapScale = 1.65322;
 			break;
 		default:
 			break;
 		}
 		if (trigger) {
 			cityIndex = getIndex(mouseX, mouseY);
-			if (backButtonPressed(ofGetWidth() / 8, ofGetHeight() * 7 / 8, mouseX, mouseY)) {
+			if (backButtonPressed(W / 8, H * 7 / 8, mouseX, mouseY)) {
 				stat = ST_ARWAIT;
-				camPos = ofVec3f(ofGetWidth() / 2, ofGetHeight() / 2, -694);
+				camPos = camDefault;
 				timeStamp = ofGetElapsedTimef();
 				trigger = false;
 				break;
@@ -208,22 +213,17 @@ void ofApp::update() {
 
 	case ST_DEWAIT:
 		if (trigger) {
-			if (backButtonPressed(ofGetWidth() / 4, ofGetHeight() * 4 / 5, mouseX, mouseY)) {
+			if (backButtonPressed(W / 4, H * 4 / 5, mouseX, mouseY)) {
 				stat = ST_CIWAIT;
 				timeStamp = ofGetElapsedTimef();
 				trigger = false;
 				break;
 			}
-			if (goButtonPressed(ofGetWidth() * 3 / 4, ofGetHeight() * 4 / 5, mouseX, mouseY)) {
+			if (goButtonPressed(W * 3 / 4, H * 4 / 5, mouseX, mouseY)) {
 				timeStamp = ofGetElapsedTimef();
 				stat = ST_FADEOUT;
 				trigger = false;
-				if (cityIndex <= 22) {
-					ofxOscMessage m;
-					m.setAddress("/touch");
-					m.addIntArg(cityIndex);
-					sender.sendMessage(m);
-				}
+				value0 = 10;
 			}
 		}
 		if (value0 == 2) {
@@ -242,15 +242,17 @@ void ofApp::update() {
 			timeStamp = ofGetElapsedTimef();
 			stat = ST_BLWAIT;
 		}
-		value0 = 10;
-		if (tick > 3) {
-			camPos = ofVec3f(ofGetWidth() / 2, ofGetHeight() / 2, -694);
+		if (tick > 3 && value0 == 10) {
+			camPos = camDefault;
 			col1 = ofColor(240, 125, 138, 220);
 			col2 = ofColor(255);
-		}
-		if (value0 == 2) {
-			timeStamp = ofGetElapsedTimef();
-			stat = ST_BLWAIT;
+			if (cityIndex <= 22) {
+				ofxOscMessage m;
+				m.setAddress("/touch");
+				m.addIntArg(cityIndex);
+				sender.sendMessage(m);
+			}
+			value0++;
 		}
 		break;
 
@@ -261,21 +263,22 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
+	if (debug) ofDrawBitmapStringHighlight("Type 'f' to to run in full-screen", 20, 20);
+
+	// time manegement
 	tick = ofGetElapsedTimef() - timeStamp;
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 
-	fbo.begin();
-	ofClear(0, 0, 0, 0);
-	ofSetColor(col2);
-
+	// camera
 	cam.lookAt(node.getPosition());
 	cam.begin();
-
 	cam.setPosition(camPos);
 
+	// draw
 	switch (stat) {
 	case ST_BLWAIT:
-		camPos = ofVec3f(ofGetWidth() / 2, ofGetHeight() / 2, -694);
+		camPos = camDefault;
+		cam.end();
 		break;
 
 	case ST_TOARANIM:
@@ -291,52 +294,65 @@ void ofApp::draw() {
 		maskFbo.end();
 		maskedImage.getTexture().setAlphaMask(maskFbo.getTexture());
 		ofSetColor(255);
-		maskedImage.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
-		if (tick < 3) opCircle(50 + tick * ofGetWidth() / 3);
+		maskedImage.draw(0, 0, W, H);
+		if (tick < 3) opCircle(50 + tick * W / 3);
 		ofSetColor(col2, 85 * (tick - 3));
-		img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
+		img.draw(0, 0, W, H);
 
 		areaText();
 
 		ofNoFill();
-		ofDrawRectangle(0, 0, b12, ofGetHeight());
-		ofDrawRectangle(b12, 0, b23 - b12, ofGetHeight());
-		ofDrawRectangle(b23, 0, b34 - b23, ofGetHeight());
-		ofDrawRectangle(b34, 0, b45 - b34, ofGetHeight());
-		ofDrawRectangle(b45, 0, b56 - b45, ofGetHeight());
-		ofDrawRectangle(b56, 0, ofGetWidth() - b56, ofGetHeight());
+		ofDrawRectangle(0, 0, b12, H);
+		ofDrawRectangle(b12, 0, b23 - b12, H);
+		ofDrawRectangle(b23, 0, b34 - b23, H);
+		ofDrawRectangle(b34, 0, b45 - b34, H);
+		ofDrawRectangle(b45, 0, b56 - b45, H);
+		ofDrawRectangle(b56, 0, W - b56, H);
 		ofFill();
-		for (int i = 0; i < int(splitString.size() / 4); i++) {
+		for (int i = 0; i < int(splitString.size() / 7); i++) {
+			ofVec2f pos = ofVec2f(
+				ofToFloat(splitString[i * 7 + 2]) * W,
+				ofToFloat(splitString[i * 7 + 3]) * H
+			);
 			if (tick >= 3) ofSetColor(col1);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
+			ofDrawCircle(pos.x, pos.y, diameter);
+			ofDrawCircle(pos.x, pos.y, diameter / 2);
 		}
+		cam.end();
 		break;
 
 	case ST_ARWAIT:
 		ofSetColor(col2);
-		img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
+		img.draw(0, 0, W, H);
 
 		ofSetColor(col2);
 		areaText();
 
 		ofNoFill();
-		ofDrawRectangle(0, 0, b12, ofGetHeight());
-		ofDrawRectangle(b12, 0, b23 - b12, ofGetHeight());
-		ofDrawRectangle(b23, 0, b34 - b23, ofGetHeight());
-		ofDrawRectangle(b34, 0, b45 - b34, ofGetHeight());
-		ofDrawRectangle(b45, 0, b56 - b45, ofGetHeight());
-		ofDrawRectangle(b56, 0, ofGetWidth() - b56, ofGetHeight());
+		ofDrawRectangle(0, 0, b12, H);
+		ofDrawRectangle(b12, 0, b23 - b12, H);
+		ofDrawRectangle(b23, 0, b34 - b23, H);
+		ofDrawRectangle(b34, 0, b45 - b34, H);
+		ofDrawRectangle(b45, 0, b56 - b45, H);
+		ofDrawRectangle(b56, 0, W - b56, H);
 		ofFill();
-		for (int i = 0; i < int(splitString.size() / 4); i++) {
+		for (int i = 0; i < int(splitString.size() / 7); i++) {
+			ofVec2f pos = ofVec2f(
+				ofToFloat(splitString[i * 7 + 2]) * W,
+				ofToFloat(splitString[i * 7 + 3]) * H
+			);
 			ofSetColor(col1);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
+			ofDrawCircle(pos.x, pos.y, diameter);
+			ofDrawCircle(pos.x, pos.y, diameter / 2);
 		}
+		cam.end();
 		break;
 
 	case ST_TOCIANIM:
-		img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
+		ofSetColor(col2);
+		img.draw(0, 0, W, H);
+		img.draw(-W, 0, W, H);
+		img.draw(W, 0, W, H);
 
 		if (tick >= 1) ofSetColor(col2, 255 - (tick - 1) * 255);
 		else ofSetColor(col2);
@@ -344,33 +360,40 @@ void ofApp::draw() {
 
 		ofNoFill();
 		flash(area, 1);
-		ofDrawRectangle(0, 0, b12, ofGetHeight());
+		ofDrawRectangle(0, 0, b12, H);
 		ofNoFill();
 		flash(area, 2);
-		ofDrawRectangle(b12, 0, b23 - b12, ofGetHeight());
+		ofDrawRectangle(b12, 0, b23 - b12, H);
 		ofNoFill();
 		flash(area, 3);
-		ofDrawRectangle(b23, 0, b34 - b23, ofGetHeight());
+		ofDrawRectangle(b23, 0, b34 - b23, H);
 		ofNoFill();
 		flash(area, 4);
-		ofDrawRectangle(b34, 0, b45 - b34, ofGetHeight());
+		ofDrawRectangle(b34, 0, b45 - b34, H);
 		ofNoFill();
 		flash(area, 5);
-		ofDrawRectangle(b45, 0, b56 - b45, ofGetHeight());
+		ofDrawRectangle(b45, 0, b56 - b45, H);
 		ofNoFill();
 		flash(area, 6);
-		ofDrawRectangle(b56, 0, ofGetWidth() - b56, ofGetHeight());
+		ofDrawRectangle(b56, 0, W - b56, H);
 		ofFill();
-		for (int i = 0; i < int(splitString.size() / 4); i++) {
+		for (int i = 0; i < int(splitString.size() / 7); i++) {
+			ofVec2f pos = ofVec2f(
+				ofToFloat(splitString[i * 7 + 2]) * W,
+				ofToFloat(splitString[i * 7 + 3]) * H
+			);
 			ofSetColor(col1);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
+			ofDrawCircle(pos.x, pos.y, diameter);
+			ofDrawCircle(pos.x, pos.y, diameter / 2);
 		}
+		cam.end();
 		break;
 
 	case ST_CIWAIT:
-		//            debugScale();
-		img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
+		ofSetColor(col2);
+		img.draw(0, 0, W, H);
+		img.draw(-W, 0, W, H);
+		img.draw(W, 0, W, H);
 		ofSetColor(col1, 220 - tick * 220);
 		switch (area) {
 		case 1:
@@ -392,29 +415,33 @@ void ofApp::draw() {
 			cityFrom = 10;
 			cityTo = 12;
 			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(14);
 			break;
 		case 5:
 			cityFrom = 12;
-			cityTo = 16;
+			cityTo = 14;
 			cityPointDraw(cityFrom, cityTo);
 			cityPointDraw(18);
 			cityPointDraw(21);
 			break;
 		case 6:
-			cityFrom = 16;
+			cityFrom = 15;
 			cityTo = 21;
 			cityPointDraw(cityFrom, cityTo, 18);
 			break;
 		default:
 			break;
 		}
-
-		backButton(ofGetWidth() / 8, ofGetHeight() * 7 / 8);
+		cam.end();
+		cityText();
+		backButton(W / 8 - backButtonUI.getWidth() / 2, H * 7 / 8 - backButtonUI.getHeight() / 2);
 		break;
 
 	case ST_TODEANIM:
 		ofSetColor(col2);
-		img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
+		img.draw(0, 0, W, H);
+		img.draw(-W, 0, W, H);
+		img.draw(W, 0, W, H);
 		ofSetColor(col1);
 		ofFill();
 
@@ -438,38 +465,34 @@ void ofApp::draw() {
 			cityFrom = 10;
 			cityTo = 12;
 			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(14);
 			break;
 		case 5:
 			cityFrom = 12;
-			cityTo = 16;
+			cityTo = 14;
 			cityPointDraw(cityFrom, cityTo);
 			cityPointDraw(18);
 			cityPointDraw(21);
 			break;
 		case 6:
-			cityFrom = 16;
+			cityFrom = 15;
 			cityTo = 21;
 			cityPointDraw(cityFrom, cityTo, 18);
 			break;
 		default:
 			break;
-		}
-
+		}            cam.end();
 		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 		ofSetColor(0, 123);
-		ofPushMatrix();
-		ofTranslate(offsetX, offsetY + easeInOutCubic(tick, (-(ofGetHeight() / 2) / mapScale), ((ofGetHeight() * 3 / 4) / mapScale), easeEnd));
-		ofScale(1 / (mapScale), 1 / (mapScale));
-		ofDrawRectangle(0, 0,
-			ofGetWidth(),
-			ofGetHeight() / 1.5);
-		ofPopMatrix();
+		ofDrawRectangle(0, easeInOutCubic(tick, -H / 2, H * 3 / 4, easeEnd), W, H / 1.5);
 		ofEnableBlendMode(OF_BLENDMODE_ADD);
 		break;
 
 	case ST_DEWAIT:
 		ofSetColor(col2);
-		img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
+		img.draw(0, 0, W, H);
+		img.draw(-W, 0, W, H);
+		img.draw(W, 0, W, H);
 
 		switch (area) {
 		case 1:
@@ -491,54 +514,63 @@ void ofApp::draw() {
 			cityFrom = 10;
 			cityTo = 12;
 			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(14);
 			break;
 		case 5:
 			cityFrom = 12;
-			cityTo = 16;
+			cityTo = 14;
 			cityPointDraw(cityFrom, cityTo);
 			cityPointDraw(18);
 			cityPointDraw(21);
 			break;
 		case 6:
-			cityFrom = 16;
+			cityFrom = 15;
 			cityTo = 21;
 			cityPointDraw(cityFrom, cityTo, 18);
 			break;
 		default:
 			break;
 		}
-
+		cam.end();
 		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 		ofSetColor(0, 123);
-		ofPushMatrix();
-		ofTranslate(offsetX, offsetY + (ofGetHeight() / 4) / mapScale);
-		ofScale(1 / (mapScale), 1 / (mapScale));
-		ofDrawRectangle(0, 0, ofGetWidth(), ofGetHeight() / 1.5);
-		ofPopMatrix();
+		ofDrawRectangle(0, H / 4, W, H / 1.5);
 		ofEnableBlendMode(OF_BLENDMODE_ADD);
 
 		ofSetColor(col2);
 		detText(cityIndex - 1);
-		backButton(ofGetWidth() / 4, ofGetHeight() * 4 / 5);
-		goButton(ofGetWidth() * 3 / 4, ofGetHeight() * 4 / 5);
+		backButton(W / 4 - backButtonUI.getWidth() / 2, H * 4 / 5 - backButtonUI.getHeight() / 2);
+		goButton(W * 3 / 4 - goButtonUI.getWidth() / 2, H * 4 / 5 - goButtonUI.getHeight() / 2);
+
 		break;
 
 	case ST_FADEOUT:
 		ofSetColor(col2 / 2 - tick * 42.5);
-		img.draw(0, ofGetHeight(), ofGetWidth(), -ofGetHeight());
+		img.draw(0, 0, W, H);
+		img.draw(-W, 0, W, H);
+		img.draw(W, 0, W, H);
+		cam.end();
 		break;
 
 	default:
 		break;
 	}
-	cam.end();
-	fbo.end();
-	fbo.draw(ofGetWidth(), ofGetHeight(), -ofGetWidth(), -ofGetHeight());
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
-	if (key == 'f') ofToggleFullscreen();
+	if (key == 'f') {
+		if (debug) {
+			tick = 0;
+			timeStamp = ofGetElapsedTimef();
+			trigger = false;
+			value0 = 10;
+			camPos = camDefault;
+			stat = ST_TOARANIM;
+		}
+		debug = !debug;
+		ofToggleFullscreen();
+	}
 }
 
 //--------------------------------------------------------------
@@ -591,6 +623,7 @@ int ofApp::getIndex(int x, int y) {
 		break;
 	case 4:
 		index = getIndexft(x, y, cityFrom, cityTo);
+		if (index > 12) index = getIndexp(x, y, 14);
 		break;
 	case 5:
 		index = getIndexft(x, y, cityFrom, cityTo);
@@ -609,11 +642,22 @@ int ofApp::getIndex(int x, int y) {
 int ofApp::getIndexft(int x, int y, int f, int t) {
 	int index;
 	for (int i = f; i < t; i++) {
-		float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-			- (float(x) / mapScale + offsetX)),
-			distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-				- (float(y) / mapScale + offsetY));
-		if (distanceX < 20 && distanceY < 20) {
+		ofVec2f pos = ofVec2f(
+			ofToFloat(splitString[i * 7 + 4]) * W,
+			ofToFloat(splitString[i * 7 + 5]) * H
+		);
+		ofVec2f pointPos = ofVec2f(
+			ofToFloat(splitString[i * 7 + 2]) * W,
+			ofToFloat(splitString[i * 7 + 3]) * H
+		);
+		ofVec3f imageScreen = cam.worldToScreen(ofVec2f(pos));
+		ofVec3f posScreen = cam.worldToScreen(ofVec2f(pointPos));
+		float distanceX = abs(imageScreen.x - x),
+			distanceY = abs(imageScreen.y - H + y - 15);
+		float distancePoint = ofDist(posScreen.x, posScreen.y, x, H - y);
+		if ((distanceX < imageSize.x * scAdjust / 2 && distanceY < imageSize.y * scAdjust / 2 + 15)
+			||
+			distancePoint < 20) {
 			index = int(i + 1);
 			break;
 		}
@@ -626,11 +670,22 @@ int ofApp::getIndexftex(int x, int y, int f, int t, int ex) {
 	int index;
 	for (int i = f; i < t; i++) {
 		if (i != ex) {
-			float distanceX = abs(ofToFloat(splitString[i * 4 + 2])
-				- (float(x) / mapScale + offsetX)),
-				distanceY = abs(ofToFloat(splitString[i * 4 + 3])
-					- (float(y) / mapScale + offsetY));
-			if (distanceX < 20 && distanceY < 20) {
+			ofVec2f pos = ofVec2f(
+				ofToFloat(splitString[i * 7 + 4]) * W,
+				ofToFloat(splitString[i * 7 + 5]) * H
+			);
+			ofVec2f pointPos = ofVec2f(
+				ofToFloat(splitString[i * 7 + 2]) * W,
+				ofToFloat(splitString[i * 7 + 3]) * H
+			);
+			ofVec3f imageScreen = cam.worldToScreen(ofVec2f(pos));
+			ofVec3f posScreen = cam.worldToScreen(ofVec2f(pointPos));
+			float distanceX = abs(imageScreen.x - x),
+				distanceY = abs(imageScreen.y - H + y - 15);
+			float distancePoint = ofDist(posScreen.x, posScreen.y, x, H - y);
+			if ((distanceX < imageSize.x * scAdjust / 2 && distanceY < imageSize.y * scAdjust / 2 + 15)
+				||
+				distancePoint < 20) {
 				index = int(i + 1);
 				break;
 			}
@@ -642,150 +697,68 @@ int ofApp::getIndexftex(int x, int y, int f, int t, int ex) {
 
 int ofApp::getIndexp(int x, int y, int p) {
 	int index;
-	float distanceX = abs(ofToFloat(splitString[p * 4 + 2])
-		- (float(x) / mapScale + offsetX)),
-		distanceY = abs(ofToFloat(splitString[p * 4 + 3])
-			- (float(y) / mapScale + offsetY));
-	if (distanceX < 20 && distanceY < 20) index = int(p + 1);
+	ofVec2f pos = ofVec2f(
+		ofToFloat(splitString[p * 7 + 4]) * W,
+		ofToFloat(splitString[p * 7 + 5]) * H
+	);
+	ofVec2f pointPos = ofVec2f(
+		ofToFloat(splitString[p * 7 + 2]) * W,
+		ofToFloat(splitString[p * 7 + 3]) * H
+	);
+	ofVec3f imageScreen = cam.worldToScreen(ofVec2f(pos));
+	ofVec3f posScreen = cam.worldToScreen(ofVec2f(pointPos));
+	float distanceX = abs(imageScreen.x - x),
+		distanceY = abs(imageScreen.y - H + y - 15);
+	float distancePoint = ofDist(posScreen.x, posScreen.y, x, H - y);
+	if ((distanceX < imageSize.x * scAdjust / 2 && distanceY < imageSize.y * scAdjust / 2 + 15)
+		||
+		distancePoint < 20)
+		index = int(p + 1);
 	else index = 100;
 	return index;
 }
 
 void ofApp::areaText() {
-	ofPushMatrix();
-	ofTranslate(ofGetWidth() / 2 - fontSelectArea.stringWidth("エリアを選択してください") / 2, 100);
-	fontSelectArea.drawString("エリアを選択してください", 0, 0);
-	ofPopMatrix();
-
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area1.x - fontArea.stringWidth("AREA") / 2, -area1.y);
-	fontArea.drawString("AREA", 0, 0);
-	ofPopMatrix();
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area1.x - fontAreaNum.stringWidth("1") / 2 - 15, -area1.y - numOffset);
-	fontAreaNum.drawString("1", 0, 0);
-	ofPopMatrix();
-
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area2.x - fontArea.stringWidth("AREA") / 2, -area2.y);
-	fontArea.drawString("AREA", 0, 0);
-	ofPopMatrix();
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area2.x - fontAreaNum.stringWidth("2") / 2, -area2.y - numOffset);
-	fontAreaNum.drawString("2", 0, 0);
-	ofPopMatrix();
-
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area3.x - fontArea.stringWidth("AREA") / 2, -area3.y);
-	fontArea.drawString("AREA", 0, 0);
-	ofPopMatrix();
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area3.x - fontAreaNum.stringWidth("3") / 2, -area3.y - numOffset);
-	fontAreaNum.drawString("3", 0, 0);
-	ofPopMatrix();
-
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area4.x - fontArea.stringWidth("AREA") / 2, -area4.y);
-	fontArea.drawString("AREA", 0, 0);
-	ofPopMatrix();
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area4.x - fontAreaNum.stringWidth("4") / 2, -area4.y - numOffset);
-	fontAreaNum.drawString("4", 0, 0);
-	ofPopMatrix();
-
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area5.x - fontArea.stringWidth("AREA") / 2, -area5.y);
-	fontArea.drawString("AREA", 0, 0);
-	ofPopMatrix();
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area5.x - fontAreaNum.stringWidth("5") / 2, -area5.y - numOffset);
-	fontAreaNum.drawString("5", 0, 0);
-	ofPopMatrix();
-
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area6.x - fontArea.stringWidth("AREA") / 2, -area6.y);
-	fontArea.drawString("AREA", 0, 0);
-	ofPopMatrix();
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(area6.x - fontAreaNum.stringWidth("6") / 2, -area6.y - numOffset);
-	fontAreaNum.drawString("6", 0, 0);
-	ofPopMatrix();
+	string s = "エリアを選択してください";
+	fontSelectArea.drawString(s, W / 2 - fontSelectArea.stringWidth(s) / 2, 70 + fontSelectArea.stringHeight(s) / 2);
+	fontArea.drawString("AREA", area1.x - fontArea.stringWidth("AREA") / 2, area1.y);
+	fontAreaNum.drawString("1", area1.x - fontAreaNum.stringWidth("1") / 2 - 15, area1.y + numOffset);
+	fontArea.drawString("AREA", area2.x - fontArea.stringWidth("AREA") / 2, area2.y);
+	fontAreaNum.drawString("2", area2.x - fontAreaNum.stringWidth("2") / 2, area2.y + numOffset);
+	fontArea.drawString("AREA", area3.x - fontArea.stringWidth("AREA") / 2, area3.y);
+	fontAreaNum.drawString("3", area3.x - fontAreaNum.stringWidth("3") / 2, area3.y + numOffset);
+	fontArea.drawString("AREA", area4.x - fontArea.stringWidth("AREA") / 2, area4.y);
+	fontAreaNum.drawString("4", area4.x - fontAreaNum.stringWidth("4") / 2, area4.y + numOffset);
+	fontArea.drawString("AREA", area5.x - fontArea.stringWidth("AREA") / 2, area5.y);
+	fontAreaNum.drawString("5", area5.x - fontAreaNum.stringWidth("5") / 2, area5.y + numOffset);
+	fontArea.drawString("AREA", area6.x - fontArea.stringWidth("AREA") / 2, area6.y);
+	fontAreaNum.drawString("6", area6.x - fontAreaNum.stringWidth("6") / 2, area6.y + numOffset);
 }
 
-void ofApp::cityText(int n) {
-	ofPushMatrix();
-	ofTranslate(ofGetWidth() / (mapScale * 2) + offsetX - fontSelectArea.stringWidth("都市を選択してください") / (mapScale * 2), ofGetHeight() * (1) / (mapScale * 8) + offsetY);
-	ofScale(1 / mapScale, 1 / mapScale);
-	fontSelectArea.drawString("都市を選択してください", 0, 0);
-	ofPopMatrix();
-
-	int p;
-	/* if (n == 4) p = 5;
-	else if (n == 5) p = 4;
-	else if (n == 7) p = 8;
-	else if (n == 8) p = 7;
-	else if (n == 12) p = 14;
-	else if (n == 14) p = 12;
-	else */if (n == 13) p = 15;
-	else if (n == 15) p = 13;
-	else if (n == 16) p = 19;
-	else if (n == 19) p = 16;
-	else p = n;
-
-	int pos = n;
-	if (n >= 3 && n < 6) pos -= 3;
-	else if (n >= 6 && n < 10) pos -= 6;
-	else if (n >= 10 && n < 12) pos -= 10;
-	else if (n >= 12 && n < 16) pos -= 12;
-	else if (n == 18) pos -= 14;
-	else if (n >= 16 && n < 18) pos -= 16;
-	else if (n >= 19 && n < 21) pos -= 17;
-	else if (n == 21) pos -= 16;
-	ofPushMatrix();
-	ofRotateX(180);
-	ofTranslate(ofGetWidth() * 7.5 / (mapScale * 8) + offsetX - fontSelectCity.stringWidth(ofToString(splitString[p * 4]) + " (" + ofToString(splitString[p * 4 + 1]) + ")") / (mapScale * 2), -ofGetHeight() * (pos + 2) / (mapScale * 7) - offsetY + 10);
-	ofScale(1 / (mapScale * 2), 1 / (mapScale * 2));
-	fontSelectCity.drawString(ofToString(splitString[p * 4]) + " (" + ofToString(splitString[p * 4 + 1]) + ")", 0, 0);
-	ofPopMatrix();
+void ofApp::cityText() {
+	string s = "都市を選択してください";
+	fontSelectArea.drawString(s, W / 2 - fontSelectArea.stringWidth(s) / 2, 70 + fontSelectArea.stringHeight(s) / 2);
 }
 
 void ofApp::detText(int n) {
-	ofPushMatrix();
-	ofTranslate(ofGetWidth() / (mapScale * 2) + offsetX - fontSelectArea.stringWidth(splitString[n * 4] + "が選択されました。決定しますか？") / (mapScale * 2 * 1.4), ofGetHeight() * 2 / (mapScale * 5) + offsetY);
-	ofScale(1 / (mapScale * 1.4), 1 / (mapScale * 1.4));
-	fontSelectArea.drawString(splitString[n * 4] + "が選択されました。決定しますか？", 0, 0);
+	string s = splitString[n * 7] + "が選択されました。決定しますか？";
+	fontSelectArea.drawString(s, W / 2 - fontSelectArea.stringWidth(s) / 2, H * 2 / 5);
 	ofPopMatrix();
 }
 
 void ofApp::backButton(int x, int y) {
-	ofPushMatrix();
-	ofTranslate((x) / (mapScale)+offsetX - fontSelectArea.stringWidth("＜戻る") / (mapScale * 2 * 1.4), (y) / (mapScale)+offsetY - fontSelectArea.stringHeight("＜戻る") / (mapScale * 2 * 1.4));
-	ofScale(1 / (mapScale * 1.4), 1 / (mapScale * 1.4));
-	fontSelectArea.drawString("＜戻る", 0, 0);
-	ofPopMatrix();
+	backButtonUI.draw(x, y);
 }
 
 bool ofApp::backButtonPressed(int x, int y, int mx, int my) {
 	bool button;
 	if (abs(x - mx)
 		<
-		fontSelectArea.stringWidth("＜戻る") / 1.9
+		backButtonUI.getWidth() / 2
 		&&
-		abs(y - my * 1.05)
+		abs(y - my)
 		<
-		fontSelectArea.stringHeight("＜戻る") / 1.9)
+		backButtonUI.getHeight() / 2)
 	{
 		cout << ofToString(1);
 		button = true;
@@ -796,22 +769,18 @@ bool ofApp::backButtonPressed(int x, int y, int mx, int my) {
 }
 
 void ofApp::goButton(int x, int y) {
-	ofPushMatrix();
-	ofTranslate((x) / (mapScale)+offsetX - fontSelectArea.stringWidth("決定") / (mapScale * 2 * 1.4), (y) / (mapScale)+offsetY - fontSelectArea.stringHeight("決定") / (mapScale * 2 * 1.4));
-	ofScale(1 / (mapScale * 1.4), 1 / (mapScale * 1.4));
-	fontSelectArea.drawString("決定", 0, 0);
-	ofPopMatrix();
+	goButtonUI.draw(x, y);
 }
 
 bool ofApp::goButtonPressed(int x, int y, int mx, int my) {
 	bool button;
 	if (abs(x - mx)
 		<
-		fontSelectArea.stringWidth("決定") / 1.9
+		backButtonUI.getWidth() / 2
 		&&
-		abs(y - my * 1.05)
+		abs(y - my)
 		<
-		fontSelectArea.stringHeight("決定") / 1.9)
+		goButtonUI.getHeight() / 2)
 	{
 		cout << ofToString(1);
 		button = true;
@@ -820,22 +789,27 @@ bool ofApp::goButtonPressed(int x, int y, int mx, int my) {
 
 	return button;
 }
-void ofApp::opCircle(int x) {
-	for (int i = 0; i < int(splitString.size() / 4); i++) {
-		if (ofToInt(splitString[i * 4 + 2]) <= x) {
-			ofSetColor(col1, 250 - (x - ofToInt(splitString[i * 4 + 2])));
-			ofFill();
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), (ofToInt(splitString[i * 4 + 2]) - x) / 30 + 10);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), (ofToInt(splitString[i * 4 + 2]) - x) / 30 + 5);
-			ofNoFill();
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), (x - ofToInt(splitString[i * 4 + 2])) / 20);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), (x - ofToInt(splitString[i * 4 + 2])) / 3);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), (x - ofToInt(splitString[i * 4 + 2])) / 10);
 
-			ofSetColor(col1, (x - ofToInt(splitString[i * 4 + 2])));
+void ofApp::opCircle(int x) {
+	for (int i = 0; i < int(splitString.size() / 7); i++) {
+		ofVec2f pos = ofVec2f(
+			ofToFloat(splitString[i * 7 + 2]) * W,
+			ofToFloat(splitString[i * 7 + 3]) * H
+		);
+		if (pos.x <= x) {
+			ofSetColor(col1, 250 - (x - pos.x));
 			ofFill();
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
+			ofDrawCircle(pos.x, pos.y, (pos.x - x) / 30 + 10);
+			ofDrawCircle(pos.x, pos.y, (pos.x - x) / 30 + 5);
+			ofNoFill();
+			ofDrawCircle(pos.x, pos.y, (x - pos.x) / 20);
+			ofDrawCircle(pos.x, pos.y, (x - pos.x) / 3);
+			ofDrawCircle(pos.x, pos.y, (x - pos.x) / 10);
+
+			ofSetColor(col1, (x - pos.x));
+			ofFill();
+			ofDrawCircle(pos.x, pos.y, diameter);
+			ofDrawCircle(pos.x, pos.y, diameter / 2);
 		}
 	}
 }
@@ -854,19 +828,11 @@ void ofApp::flash(int area, int n) {
 	}
 }
 
-void ofApp::debugScale() {
-	for (int i = 0; i < 11; i++) {
-		ofSetColor(col2);
-		ofPushMatrix();
-		ofTranslate(offsetX, offsetY);
-		ofScale(1 / mapScale, 1 / mapScale);
-		ofDrawLine(i * ofGetWidth() / 10, 0, i * ofGetWidth() / 10, ofGetHeight());
-		ofDrawLine(0, i * ofGetHeight() / 10, ofGetWidth(), i * ofGetHeight() / 10);
-		ofPopMatrix();
-	}
-}
-
 void ofApp::annotation(int n) {
+	ofVec2f pos = ofVec2f(
+		ofToFloat(splitString[n * 7 + 2]) * W,
+		ofToFloat(splitString[n * 7 + 3]) * H
+	);
 	if (tick == 0) timeStampDia = ofGetElapsedTimef();
 	if (circleAlpha >= 255) timeStampDia = ofGetElapsedTimef();
 	circleAlpha = ofGetFrameNum() - frameStamp;
@@ -874,108 +840,174 @@ void ofApp::annotation(int n) {
 	circleDia = ofGetElapsedTimef() - timeStampDia;
 	ofSetColor(col1, 255 - circleAlpha);
 	ofNoFill();
-	ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 8.2 / mapScale);
-	ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 6.3 / mapScale);
+	ofDrawCircle(pos.x, pos.y, circleDia * 8.2 / mapScale);
+	ofDrawCircle(pos.x, pos.y, circleDia * 6.3 / mapScale);
 	ofFill();
-	ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 10.2 / mapScale);
-	ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), circleDia * 4.3 / mapScale);
+	ofDrawCircle(pos.x, pos.y, circleDia * 10.2 / mapScale);
+	ofDrawCircle(pos.x, pos.y, circleDia * 4.3 / mapScale);
 	ofSetColor(col1, circleAlpha);
 	ofNoFill();
-	if (circleDia <= 3) ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 3) * 5.4 / mapScale);
-	if (circleDia <= 4)ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 4) * 6.4 / mapScale);
-	if (circleDia <= 5) ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 5) * 6.9 / mapScale);
-	if (circleDia <= 6) ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), (circleDia - 6) * 7.4 / mapScale);
+	if (circleDia <= 3) ofDrawCircle(pos.x, pos.y, (circleDia - 3) * 5.4 / mapScale);
+	if (circleDia <= 4)ofDrawCircle(pos.x, pos.y, (circleDia - 4) * 6.4 / mapScale);
+	if (circleDia <= 5) ofDrawCircle(pos.x, pos.y, (circleDia - 5) * 6.9 / mapScale);
+	if (circleDia <= 6) ofDrawCircle(pos.x, pos.y, (circleDia - 6) * 7.4 / mapScale);
 	ofSetColor(col1, 255 - circleAlpha);
 	ofFill();
-	ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), diameter / mapScale);
-	ofDrawCircle(ofToInt(splitString[n * 4 + 2]), ofToInt(splitString[n * 4 + 3]), diameter / 2 / mapScale);
-	//        }
-	//    }
+	ofDrawCircle(pos.x, pos.y, diameter / mapScale);
+	ofDrawCircle(pos.x, pos.y, diameter / 2 / mapScale);
 
 	ofSetLineWidth(3);
-	int p;
-	/* if (n == 4) p = 5;
-	else if (n == 5) p = 4;
-	else if (n == 7) p = 8;
-	else if (n == 8) p = 7;
-	else if (n == 12) p = 14;
-	else if (n == 14) p = 12;
-	else */if (n == 13) p = 15;
-	else if (n == 15) p = 13;
-	else if (n == 16) p = 19;
-	else if (n == 19) p = 16;
-	else p = n;
-
-	int pos = n;
-	if (n >= 3 && n < 6) pos -= 3;
-	else if (n >= 6 && n < 10) pos -= 6;
-	else if (n >= 10 && n < 12) pos -= 10;
-	else if (n >= 12 && n < 16) pos -= 12;
-	else if (n == 18) pos -= 14;
-	else if (n >= 16 && n < 18) pos -= 16;
-	else if (n >= 19 && n < 21) pos -= 17;
-	else if (n == 21) pos -= 16;
-
 	if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col1);
 	else if (tick < 1) ofSetColor(col1, tick * 220);
 	else if (tick >= 1)  ofSetColor(col1);
-	float x1 = ofToFloat(splitString[p * 4 + 2]);
-	float y1 = ofToFloat(splitString[p * 4 + 3]);
-	float x2 = ofGetWidth() * 7.5 / (mapScale * 8) + offsetX - fontSelectCity.stringWidth(ofToString(splitString[p * 4]) + " (" + ofToString(splitString[p * 4 + 1]) + ")") / (mapScale * 2);
-	float y2 = ofGetHeight() * (pos + 2) / (mapScale * 7) + offsetY - 13;
+	float x1 = ofToFloat(splitString[n * 7 + 2]) * W;
+	float y1 = ofToFloat(splitString[n * 7 + 3]) * H;
+	float x2 = ofToFloat(splitString[n * 7 + 4]) * W;
+	float y2 = ofToFloat(splitString[n * 7 + 5]) * H;
 	if (y1 < y2) {
-		ofDrawLine(x1, y1, x1 + y2 - y1, y2);
-		ofDrawLine(x1 + y2 - y1, y2, x2, y2);
+		if (x1 > x2) {
+			ofDrawLine(x1, y1, x1 - y2 + y1, y2);
+			ofDrawLine(x1 - y2 + y1, y2, x2, y2);
+		}
+		else {
+			ofDrawLine(x1, y1, x1 + y2 - y1, y2);
+			ofDrawLine(x1 + y2 - y1, y2, x2, y2);
+		}
 	}
 	else if (y1 == y2) {
 		ofDrawLine(x1, y2, x2, y2);
 	}
 	else if (y1 > y2) {
-		ofDrawLine(x1, y1, x1 - y2 + y1, y2);
-		ofDrawLine(x1 - y2 + y1, y2, x2, y2);
-	}
+		if (x1 > x2) {
+			ofDrawLine(x1, y1, x1 + y2 - y1, y2);
+			ofDrawLine(x1 + y2 - y1, y2, x2, y2);
+		}
+		else {
+			ofDrawLine(x1, y1, x1 - y2 + y1, y2);
+			ofDrawLine(x1 - y2 + y1, y2, x2, y2);
 
+		}
+	}
 	ofSetLineWidth(1);
 }
 
 void ofApp::cityPointDraw(int p) {
+	ofVec2f pos = ofVec2f(
+		ofToFloat(splitString[p * 7 + 2]) * W,
+		ofToFloat(splitString[p * 7 + 3]) * H
+	);
+	ofVec2f imagePos = ofVec2f(
+		ofToFloat(splitString[p * 7 + 4]) * W,
+		ofToFloat(splitString[p * 7 + 5]) * H
+	);
+	localTime = ofGetHours() + ofToInt(splitString[p * 7 + 6]);
+	if (localTime >= 24) localTime -= 24;
+	else if (localTime < 0) localTime += 24;
+	int imageNum;
+	if (localTime >= 6 && localTime < 18) imageNum = p * 2;  else imageNum = p * 2 + 1;
+	ofLog() << localTime;
 	ofSetColor(col1);
-	ofDrawCircle(ofToInt(splitString[p * 4 + 2]), ofToInt(splitString[p * 4 + 3]), diameter);
-	ofDrawCircle(ofToInt(splitString[p * 4 + 2]), ofToInt(splitString[p * 4 + 3]), diameter / 2);
+	ofDrawCircle(pos.x, pos.y, diameter);
+	ofDrawCircle(pos.x, pos.y, diameter / 2);
 	annotation(p);
 	ofSetColor(col2, 0);
 	if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col2);
 	else if (tick <= 1.0) ofSetColor(col2, tick * 255);
 	else if (tick > 1.0)ofSetColor(col2);
-	cityText(p);
+	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+	ofPushMatrix();
+	ofTranslate(imagePos.x, imagePos.y);
+	ofScale(1 / imageScale, 1 / imageScale);
+	cityImage[imageNum].draw(-imageSize.x / 2, -imageSize.y / 2, imageSize.x, imageSize.y);
+	string s = splitString[p * 7] + "(" + splitString[p * 7 + 1] + ")";
+	ofTranslate(
+		-fontCity.stringWidth(s) / 8,
+		imageSize.y / 2 + fontCity.stringHeight(s) / 4
+	);
+	ofScale(.25, .25);
+	fontCity.drawString(s, 0, 0);
+	ofPopMatrix();
+	ofEnableBlendMode(OF_BLENDMODE_ADD);
 }
 
 void ofApp::cityPointDraw(int f, int t) {
 	for (int i = f; i < t; i++) {
+		ofVec2f pos = ofVec2f(
+			ofToFloat(splitString[i * 7 + 2]) * W,
+			ofToFloat(splitString[i * 7 + 3]) * H
+		);
+		ofVec2f imagePos = ofVec2f(
+			ofToFloat(splitString[i * 7 + 4]) * W,
+			ofToFloat(splitString[i * 7 + 5]) * H
+		);
+		localTime = ofGetHours() + ofToInt(splitString[i * 7 + 6]);
+		if (localTime >= 24) localTime -= 24;
+		else if (localTime < 0) localTime += 24;
+		int imageNum;
+		if (localTime >= 6 && localTime < 18) imageNum = i * 2;  else imageNum = i * 2 + 1;
 		ofSetColor(col1);
-		ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-		ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
+		ofDrawCircle(pos.x, pos.y, diameter);
+		ofDrawCircle(pos.x, pos.y, diameter / 2);
 		annotation(i);
 		ofSetColor(col2, 0);
 		if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col2);
 		else if (tick <= 1.0) ofSetColor(col2, tick * 255);
 		else if (tick > 1.0)ofSetColor(col2);
-		cityText(i);
+		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+		ofPushMatrix();
+		ofTranslate(imagePos.x, imagePos.y);
+		ofScale(1 / imageScale, 1 / imageScale);
+		cityImage[imageNum].draw(-imageSize.x / 2, -imageSize.y / 2, imageSize.x, imageSize.y);
+		string s = splitString[i * 7] + "(" + splitString[i * 7 + 1] + ")";
+		ofTranslate(
+			-fontCity.stringWidth(s) / 8,
+			imageSize.y / 2 + fontCity.stringHeight(s) / 4
+		);
+		ofScale(.25, .25);
+		fontCity.drawString(s, 0, 0);
+		ofPopMatrix();
+		ofEnableBlendMode(OF_BLENDMODE_ADD);
 	}
 }
 
 void ofApp::cityPointDraw(int f, int t, int ex) {
 	for (int i = f; i < t; i++) {
 		if (i != ex) {
+			ofVec2f pos = ofVec2f(
+				ofToFloat(splitString[i * 7 + 2]) * W,
+				ofToFloat(splitString[i * 7 + 3]) * H
+			);
+			ofVec2f imagePos = ofVec2f(
+				ofToFloat(splitString[i * 7 + 4]) * W,
+				ofToFloat(splitString[i * 7 + 5]) * H
+			);
+			localTime = ofGetHours() + ofToInt(splitString[i * 7 + 6]);
+			if (localTime >= 24) localTime -= 24;
+			else if (localTime < 0) localTime += 24;
+			int imageNum;
+			if (localTime >= 6 && localTime < 18) imageNum = i * 2;  else imageNum = i * 2 + 1;
 			ofSetColor(col1);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter);
-			ofDrawCircle(ofToInt(splitString[i * 4 + 2]), ofToInt(splitString[i * 4 + 3]), diameter / 2);
+			ofDrawCircle(pos.x, pos.y, diameter);
+			ofDrawCircle(pos.x, pos.y, diameter / 2);
 			annotation(i);
 			ofSetColor(col2, 0);
 			if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col2);
 			else if (tick <= 1.0) ofSetColor(col2, tick * 255);
 			else if (tick > 1.0)ofSetColor(col2);
-			cityText(i);
+			ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+			ofPushMatrix();
+			ofTranslate(imagePos.x, imagePos.y);
+			ofScale(1 / imageScale, 1 / imageScale);
+			cityImage[imageNum].draw(-imageSize.x / 2, -imageSize.y / 2, imageSize.x, imageSize.y);
+			string s = splitString[i * 7] + "(" + splitString[i * 7 + 1] + ")";
+			ofTranslate(
+				-fontCity.stringWidth(s) / 8,
+				imageSize.y / 2 + fontCity.stringHeight(s) / 4
+			);
+			ofScale(.25, .25);
+			fontCity.drawString(s, 0, 0);
+			ofPopMatrix();
+			ofEnableBlendMode(OF_BLENDMODE_ADD);
 		}
 	}
 }
