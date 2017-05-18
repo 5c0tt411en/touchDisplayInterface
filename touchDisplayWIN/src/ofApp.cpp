@@ -46,6 +46,7 @@ void ofApp::setup() {
 	ofBackground(0);
 	ofSetCircleResolution(60);
 	ofDisableSmoothing();
+	ofSetFrameRate(60);
 }
 
 //--------------------------------------------------------------
@@ -53,7 +54,7 @@ void ofApp::update() {
 	//OSC
 	while (receiver.hasWaitingMessages()) {
 		ofxOscMessage message;
-		receiver.getNextMessage(&message);
+		receiver.getNextMessage(message);
 		value0 = message.getArgAsInt32(0);
 	}
 
@@ -183,8 +184,8 @@ void ofApp::update() {
 		if (trigger) {
 			cityIndex = getIndex(mouseX, mouseY);
 			if (backButtonPressed(W / 8, H * 7 / 8, mouseX, mouseY)) {
-				stat = ST_ARWAIT;
-				camPos = camDefault;
+				stat = ST_TOCIANIM_BK;
+				camPosBK = camPos;
 				timeStamp = ofGetElapsedTimef();
 				trigger = false;
 				break;
@@ -196,6 +197,56 @@ void ofApp::update() {
 			timeStamp = ofGetElapsedTimef();
 			stat = ST_TODEANIM;
 			trigger = false;
+		}
+		if (value0 == 2) {
+			timeStamp = ofGetElapsedTimef();
+			stat = ST_BLWAIT;
+		}
+		break;
+
+	case ST_TOCIANIM_BK:
+		trigger = false;
+		if (tick >= 1) {
+			switch (area) {
+			case 1:
+				camPos.x = easeInOutCubic(tick - 1, camPosBK.x, -anim1.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, camPosBK.y, -anim1.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camPosBK.z, -anim1.z, easeEnd);
+				break;
+			case 2:
+				camPos.x = easeInOutCubic(tick - 1, camPosBK.x, -anim2.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, camPosBK.y, -anim2.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camPosBK.z, -anim2.z, easeEnd);
+				break;
+			case 3:
+				camPos.x = easeInOutCubic(tick - 1, camPosBK.x, -anim3.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, camPosBK.y, -anim3.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camPosBK.z, -anim3.z, easeEnd);
+				break;
+			case 4:
+				camPos.x = easeInOutCubic(tick - 1, camPosBK.x, -anim4.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, camPosBK.y, -anim4.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camPosBK.z, -anim4.z, easeEnd);
+				break;
+			case 5:
+				camPos.x = easeInOutCubic(tick - 1, camPosBK.x, -anim5.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, camPosBK.y, -anim5.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camPosBK.z, -anim5.z, easeEnd);
+				break;
+			case 6:
+				camPos.x = easeInOutCubic(tick - 1, camPosBK.x, -anim6.x, easeEnd);
+				camPos.y = easeInOutCubic(tick - 1, camPosBK.y, -anim6.y, easeEnd);
+				camPos.z = easeInOutCubic(tick - 1, camPosBK.z, -anim6.z, easeEnd);
+				break;
+			default:
+				break;
+			}
+		}
+		if (tick > easeEnd + 1) {
+			timeStamp = ofGetElapsedTimef();
+			timeStampDia = ofGetElapsedTimef();
+			frameStamp = ofGetFrameNum();
+			stat = ST_ARWAIT;
 		}
 		if (value0 == 2) {
 			timeStamp = ofGetElapsedTimef();
@@ -242,10 +293,8 @@ void ofApp::update() {
 			timeStamp = ofGetElapsedTimef();
 			stat = ST_BLWAIT;
 		}
-		if (tick > 3 && value0 == 10) {
+		if (tick > 1 && value0 == 10) {
 			camPos = camDefault;
-			col1 = ofColor(240, 125, 138, 220);
-			col2 = ofColor(255);
 			if (cityIndex <= 22) {
 				ofxOscMessage m;
 				m.setAddress("/touch");
@@ -354,8 +403,7 @@ void ofApp::draw() {
 		img.draw(-W, 0, W, H);
 		img.draw(W, 0, W, H);
 
-		if (tick >= 1) ofSetColor(col2, 255 - (tick - 1) * 255);
-		else ofSetColor(col2);
+		tick >= 1 ? ofSetColor(col2, 255 - (tick - 1) * 255) : ofSetColor(col2);
 		areaText();
 
 		ofNoFill();
@@ -390,49 +438,125 @@ void ofApp::draw() {
 		break;
 
 	case ST_CIWAIT:
+		alphaFrom = 0;
+		alphaTo = 255;
+		d = 1;
 		ofSetColor(col2);
 		img.draw(0, 0, W, H);
 		img.draw(-W, 0, W, H);
 		img.draw(W, 0, W, H);
-		ofSetColor(col1, 220 - tick * 220);
 		switch (area) {
 		case 1:
 			cityFrom = 0;
 			cityTo = 3;
-			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
 			break;
 		case 2:
 			cityFrom = 3;
 			cityTo = 6;
-			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
 			break;
 		case 3:
 			cityFrom = 6;
 			cityTo = 10;
-			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
 			break;
 		case 4:
 			cityFrom = 10;
 			cityTo = 12;
-			cityPointDraw(cityFrom, cityTo);
-			cityPointDraw(14);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			cityPointDraw(14, alphaFrom, alphaTo, d);
 			break;
 		case 5:
 			cityFrom = 12;
 			cityTo = 14;
-			cityPointDraw(cityFrom, cityTo);
-			cityPointDraw(18);
-			cityPointDraw(21);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			cityPointDraw(18, alphaFrom, alphaTo, d);
+			cityPointDraw(21, alphaFrom, alphaTo, d);
 			break;
 		case 6:
 			cityFrom = 15;
 			cityTo = 21;
-			cityPointDraw(cityFrom, cityTo, 18);
+			cityPointDraw(cityFrom, cityTo, 18, alphaFrom, alphaTo, d);
 			break;
 		default:
 			break;
 		}
 		cam.end();
+		cityText();
+		backButton(W / 8 - backButtonUI.getWidth() / 2, H * 7 / 8 - backButtonUI.getHeight() / 2);
+		break;
+
+	case ST_TOCIANIM_BK:
+		alphaFrom = 255;
+		alphaTo = 0;
+		d = 1;
+		ofSetColor(col2);
+		img.draw(0, 0, W, H);
+		img.draw(-W, 0, W, H);
+		img.draw(W, 0, W, H);
+		if (tick <= 1) {
+			switch (area) {
+			case 1:
+				cityFrom = 0;
+				cityTo = 3;
+				cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+				break;
+			case 2:
+				cityFrom = 3;
+				cityTo = 6;
+				cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+				break;
+			case 3:
+				cityFrom = 6;
+				cityTo = 10;
+				cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+				break;
+			case 4:
+				cityFrom = 10;
+				cityTo = 12;
+				cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+				cityPointDraw(14, alphaFrom, alphaTo, d);
+				break;
+			case 5:
+				cityFrom = 12;
+				cityTo = 14;
+				cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+				cityPointDraw(18, alphaFrom, alphaTo, d);
+				cityPointDraw(21, alphaFrom, alphaTo, d);
+				break;
+			case 6:
+				cityFrom = 15;
+				cityTo = 21;
+				cityPointDraw(cityFrom, cityTo, 18, alphaFrom, alphaTo, d);
+				break;
+			default:
+				break;
+			}
+		}
+
+		tick >= 1 ? ofSetColor(col2, (tick - 1) * 255) : ofSetColor(col2, 0);
+		areaText();
+		ofNoFill();
+		ofDrawRectangle(0, 0, b12, H);
+		ofDrawRectangle(b12, 0, b23 - b12, H);
+		ofDrawRectangle(b23, 0, b34 - b23, H);
+		ofDrawRectangle(b34, 0, b45 - b34, H);
+		ofDrawRectangle(b45, 0, b56 - b45, H);
+		ofDrawRectangle(b56, 0, W - b56, H);
+		ofFill();
+
+		for (int i = 0; i < int(splitString.size() / 7); i++) {
+			ofVec2f pos = ofVec2f(
+				ofToFloat(splitString[i * 7 + 2]) * W,
+				ofToFloat(splitString[i * 7 + 3]) * H
+			);
+			tick >= 1 ? ofSetColor(col1, 255) : ofSetColor(col1, 0);
+			ofDrawCircle(pos.x, pos.y, diameter);
+			ofDrawCircle(pos.x, pos.y, diameter / 2);
+		}
+		cam.end();
+		tick <= 1 ? ofSetColor(col2, 255 * (1 - tick)) : ofSetColor(col2, 0);
 		cityText();
 		backButton(W / 8 - backButtonUI.getWidth() / 2, H * 7 / 8 - backButtonUI.getHeight() / 2);
 		break;
@@ -449,39 +573,40 @@ void ofApp::draw() {
 		case 1:
 			cityFrom = 0;
 			cityTo = 3;
-			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
 			break;
 		case 2:
 			cityFrom = 3;
 			cityTo = 6;
-			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
 			break;
 		case 3:
 			cityFrom = 6;
 			cityTo = 10;
-			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
 			break;
 		case 4:
 			cityFrom = 10;
 			cityTo = 12;
-			cityPointDraw(cityFrom, cityTo);
-			cityPointDraw(14);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			cityPointDraw(14, alphaFrom, alphaTo, d);
 			break;
 		case 5:
 			cityFrom = 12;
 			cityTo = 14;
-			cityPointDraw(cityFrom, cityTo);
-			cityPointDraw(18);
-			cityPointDraw(21);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			cityPointDraw(18, alphaFrom, alphaTo, d);
+			cityPointDraw(21, alphaFrom, alphaTo, d);
 			break;
 		case 6:
 			cityFrom = 15;
 			cityTo = 21;
-			cityPointDraw(cityFrom, cityTo, 18);
+			cityPointDraw(cityFrom, cityTo, 18, alphaFrom, alphaTo, d);
 			break;
 		default:
 			break;
-		}            cam.end();
+		}
+		cam.end();
 		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 		ofSetColor(0, 123);
 		ofDrawRectangle(0, easeInOutCubic(tick, -H / 2, H * 3 / 4, easeEnd), W, H / 1.5);
@@ -498,35 +623,35 @@ void ofApp::draw() {
 		case 1:
 			cityFrom = 0;
 			cityTo = 3;
-			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
 			break;
 		case 2:
 			cityFrom = 3;
 			cityTo = 6;
-			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
 			break;
 		case 3:
 			cityFrom = 6;
 			cityTo = 10;
-			cityPointDraw(cityFrom, cityTo);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
 			break;
 		case 4:
 			cityFrom = 10;
 			cityTo = 12;
-			cityPointDraw(cityFrom, cityTo);
-			cityPointDraw(14);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			cityPointDraw(14, alphaFrom, alphaTo, d);
 			break;
 		case 5:
 			cityFrom = 12;
 			cityTo = 14;
-			cityPointDraw(cityFrom, cityTo);
-			cityPointDraw(18);
-			cityPointDraw(21);
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			cityPointDraw(18, alphaFrom, alphaTo, d);
+			cityPointDraw(21, alphaFrom, alphaTo, d);
 			break;
 		case 6:
 			cityFrom = 15;
 			cityTo = 21;
-			cityPointDraw(cityFrom, cityTo, 18);
+			cityPointDraw(cityFrom, cityTo, 18, alphaFrom, alphaTo, d);
 			break;
 		default:
 			break;
@@ -545,11 +670,66 @@ void ofApp::draw() {
 		break;
 
 	case ST_FADEOUT:
-		ofSetColor(col2 / 2 - tick * 42.5);
+		alphaFrom = 255;
+		alphaTo = 255;
+		d = 1;
+		ofSetColor(col2);
 		img.draw(0, 0, W, H);
 		img.draw(-W, 0, W, H);
 		img.draw(W, 0, W, H);
+
+		switch (area) {
+		case 1:
+			cityFrom = 0;
+			cityTo = 3;
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			break;
+		case 2:
+			cityFrom = 3;
+			cityTo = 6;
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			break;
+		case 3:
+			cityFrom = 6;
+			cityTo = 10;
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			break;
+		case 4:
+			cityFrom = 10;
+			cityTo = 12;
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			cityPointDraw(14, alphaFrom, alphaTo, d);
+			break;
+		case 5:
+			cityFrom = 12;
+			cityTo = 14;
+			cityPointDraw(cityFrom, cityTo, alphaFrom, alphaTo, d);
+			cityPointDraw(18, alphaFrom, alphaTo, d);
+			cityPointDraw(21, alphaFrom, alphaTo, d);
+			break;
+		case 6:
+			cityFrom = 15;
+			cityTo = 21;
+			cityPointDraw(cityFrom, cityTo, 18, alphaFrom, alphaTo, d);
+			break;
+		default:
+			break;
+		}
 		cam.end();
+		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+		ofSetColor(0, 123);
+		ofDrawRectangle(0, H / 4, W, H / 1.5);
+		ofEnableBlendMode(OF_BLENDMODE_ADD);
+
+		ofSetColor(col2);
+		detText(cityIndex - 1);
+		backButton(W / 4 - backButtonUI.getWidth() / 2, H * 4 / 5 - backButtonUI.getHeight() / 2);
+		goButton(W * 3 / 4 - goButtonUI.getWidth() / 2, H * 4 / 5 - goButtonUI.getHeight() / 2);
+
+		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+		tick <= d ? ofSetColor(0, 255 * tick / d) : ofSetColor(0, 255);
+		ofDrawRectangle(0, 0, W, H);
+		ofEnableBlendMode(OF_BLENDMODE_ADD);
 		break;
 
 	default:
@@ -828,7 +1008,7 @@ void ofApp::flash(int area, int n) {
 	}
 }
 
-void ofApp::annotation(int n) {
+void ofApp::annotation(int n, int alphaFrom, int alphaTo, float d) {
 	ofVec2f pos = ofVec2f(
 		ofToFloat(splitString[n * 7 + 2]) * W,
 		ofToFloat(splitString[n * 7 + 3]) * H
@@ -838,40 +1018,54 @@ void ofApp::annotation(int n) {
 	circleAlpha = ofGetFrameNum() - frameStamp;
 	if (circleAlpha >= 255) frameStamp = ofGetFrameNum();
 	circleDia = ofGetElapsedTimef() - timeStampDia;
-	ofSetColor(col1, 255 - circleAlpha);
+	if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col1, 255 - circleAlpha);
+	else if (tick <= d) ofSetColor(col1, (255 - circleAlpha) * (alphaFrom - tick * ((float)alphaFrom - (float)alphaTo) / d) / 255);
+	else if (tick > d)ofSetColor(col1, (255 - circleAlpha) * alphaTo / 255);
 	ofNoFill();
 	ofDrawCircle(pos.x, pos.y, circleDia * 8.2 / mapScale);
 	ofDrawCircle(pos.x, pos.y, circleDia * 6.3 / mapScale);
 	ofFill();
 	ofDrawCircle(pos.x, pos.y, circleDia * 10.2 / mapScale);
 	ofDrawCircle(pos.x, pos.y, circleDia * 4.3 / mapScale);
-	ofSetColor(col1, circleAlpha);
+	if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col1, circleAlpha);
+	else if (tick <= d) ofSetColor(col1, circleAlpha * (alphaFrom - tick * ((float)alphaFrom - (float)alphaTo) / d) / 255);
+	else if (tick > d)ofSetColor(col1, circleAlpha * alphaTo / 255);
 	ofNoFill();
 	if (circleDia <= 3) ofDrawCircle(pos.x, pos.y, (circleDia - 3) * 5.4 / mapScale);
 	if (circleDia <= 4)ofDrawCircle(pos.x, pos.y, (circleDia - 4) * 6.4 / mapScale);
 	if (circleDia <= 5) ofDrawCircle(pos.x, pos.y, (circleDia - 5) * 6.9 / mapScale);
 	if (circleDia <= 6) ofDrawCircle(pos.x, pos.y, (circleDia - 6) * 7.4 / mapScale);
-	ofSetColor(col1, 255 - circleAlpha);
+	if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col1, 255 - circleAlpha);
+	else if (tick <= d) ofSetColor(col1, (255 - circleAlpha) * (alphaFrom - tick * ((float)alphaFrom - (float)alphaTo) / d) / 255);
+	else if (tick > d)ofSetColor(col1, (255 - circleAlpha) * alphaTo / 255);
 	ofFill();
 	ofDrawCircle(pos.x, pos.y, diameter / mapScale);
 	ofDrawCircle(pos.x, pos.y, diameter / 2 / mapScale);
 
 	ofSetLineWidth(3);
 	if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col1);
-	else if (tick < 1) ofSetColor(col1, tick * 220);
-	else if (tick >= 1)  ofSetColor(col1);
+	else if (tick <= d) ofSetColor(col1, alphaFrom - tick * ((float)alphaFrom - (float)alphaTo) / d);
+	else if (tick > d)ofSetColor(col1, alphaTo);
 	float x1 = ofToFloat(splitString[n * 7 + 2]) * W;
 	float y1 = ofToFloat(splitString[n * 7 + 3]) * H;
 	float x2 = ofToFloat(splitString[n * 7 + 4]) * W;
 	float y2 = ofToFloat(splitString[n * 7 + 5]) * H;
 	if (y1 < y2) {
 		if (x1 > x2) {
-			ofDrawLine(x1, y1, x1 - y2 + y1, y2);
-			ofDrawLine(x1 - y2 + y1, y2, x2, y2);
+			if (ofDist(x2, y2, x1 - y2 + y1, y2) > imageSize.x / (2 * imageScale)) {
+				ofDrawLine(x1, y1, x1 - y2 + y1, y2);
+				ofDrawLine(x1 - y2 + y1, y2, x2 + imageSize.x / (2 * imageScale), y2);
+			}
+			else if (ofDist(x2, y2, x1 - y2 + y1, y2) > imageSize.y / (2 * imageScale)) {
+				ofDrawLine(x1, y1, x1 - y2 + y1 + imageSize.x / (2 * imageScale), y2 - (imageSize.x / (2 * imageScale) - ofDist(x2, y2, x1 - y2 + y1, y2)));
+			}
+			else {
+				ofDrawLine(x1, y1, x1 - y2 + y1 + imageSize.y / (2 * imageScale), y2 - imageSize.y / (2 * imageScale));
+			}
 		}
 		else {
 			ofDrawLine(x1, y1, x1 + y2 - y1, y2);
-			ofDrawLine(x1 + y2 - y1, y2, x2, y2);
+			ofDrawLine(x1 + y2 - y1, y2, x2 - imageSize.x / (2 * imageScale), y2);
 		}
 	}
 	else if (y1 == y2) {
@@ -880,18 +1074,18 @@ void ofApp::annotation(int n) {
 	else if (y1 > y2) {
 		if (x1 > x2) {
 			ofDrawLine(x1, y1, x1 + y2 - y1, y2);
-			ofDrawLine(x1 + y2 - y1, y2, x2, y2);
+			ofDrawLine(x1 + y2 - y1, y2, x2 + imageSize.x / (2 * imageScale), y2);
 		}
 		else {
 			ofDrawLine(x1, y1, x1 - y2 + y1, y2);
-			ofDrawLine(x1 - y2 + y1, y2, x2, y2);
+			ofDrawLine(x1 - y2 + y1, y2, x2 - imageSize.x / (2 * imageScale), y2);
 
 		}
 	}
 	ofSetLineWidth(1);
 }
 
-void ofApp::cityPointDraw(int p) {
+void ofApp::cityPointDraw(int p, int alphaFrom, int alphaTo, float d) {
 	ofVec2f pos = ofVec2f(
 		ofToFloat(splitString[p * 7 + 2]) * W,
 		ofToFloat(splitString[p * 7 + 3]) * H
@@ -905,15 +1099,14 @@ void ofApp::cityPointDraw(int p) {
 	else if (localTime < 0) localTime += 24;
 	int imageNum;
 	if (localTime >= 6 && localTime < 18) imageNum = p * 2;  else imageNum = p * 2 + 1;
-	ofLog() << localTime;
 	ofSetColor(col1);
 	ofDrawCircle(pos.x, pos.y, diameter);
 	ofDrawCircle(pos.x, pos.y, diameter / 2);
-	annotation(p);
+	annotation(p, alphaFrom, alphaTo, d);
 	ofSetColor(col2, 0);
 	if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col2);
-	else if (tick <= 1.0) ofSetColor(col2, tick * 255);
-	else if (tick > 1.0)ofSetColor(col2);
+	else if (tick <= d) ofSetColor(col2, alphaFrom - tick * ((float)alphaFrom - (float)alphaTo) / d);
+	else if (tick > d)ofSetColor(col2, alphaTo);
 	ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 	ofPushMatrix();
 	ofTranslate(imagePos.x, imagePos.y);
@@ -930,7 +1123,7 @@ void ofApp::cityPointDraw(int p) {
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
 }
 
-void ofApp::cityPointDraw(int f, int t) {
+void ofApp::cityPointDraw(int f, int t, int alphaFrom, int alphaTo, float d) {
 	for (int i = f; i < t; i++) {
 		ofVec2f pos = ofVec2f(
 			ofToFloat(splitString[i * 7 + 2]) * W,
@@ -948,11 +1141,11 @@ void ofApp::cityPointDraw(int f, int t) {
 		ofSetColor(col1);
 		ofDrawCircle(pos.x, pos.y, diameter);
 		ofDrawCircle(pos.x, pos.y, diameter / 2);
-		annotation(i);
+		annotation(i, alphaFrom, alphaTo, d);
 		ofSetColor(col2, 0);
 		if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col2);
-		else if (tick <= 1.0) ofSetColor(col2, tick * 255);
-		else if (tick > 1.0)ofSetColor(col2);
+		else if (tick <= d) ofSetColor(col2, alphaFrom - tick * ((float)alphaFrom - (float)alphaTo) / d);
+		else if (tick > d)ofSetColor(col2, alphaTo);
 		ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 		ofPushMatrix();
 		ofTranslate(imagePos.x, imagePos.y);
@@ -970,7 +1163,7 @@ void ofApp::cityPointDraw(int f, int t) {
 	}
 }
 
-void ofApp::cityPointDraw(int f, int t, int ex) {
+void ofApp::cityPointDraw(int f, int t, int ex, int alphaFrom, int alphaTo, float d) {
 	for (int i = f; i < t; i++) {
 		if (i != ex) {
 			ofVec2f pos = ofVec2f(
@@ -989,11 +1182,11 @@ void ofApp::cityPointDraw(int f, int t, int ex) {
 			ofSetColor(col1);
 			ofDrawCircle(pos.x, pos.y, diameter);
 			ofDrawCircle(pos.x, pos.y, diameter / 2);
-			annotation(i);
+			annotation(i, alphaFrom, alphaTo, d);
 			ofSetColor(col2, 0);
 			if (stat == ST_DEWAIT || stat == ST_TODEANIM) ofSetColor(col2);
-			else if (tick <= 1.0) ofSetColor(col2, tick * 255);
-			else if (tick > 1.0)ofSetColor(col2);
+			else if (tick <= d) ofSetColor(col2, alphaFrom - tick * ((float)alphaFrom - (float)alphaTo) / d);
+			else if (tick > d)ofSetColor(col2, alphaTo);
 			ofEnableBlendMode(OF_BLENDMODE_ALPHA);
 			ofPushMatrix();
 			ofTranslate(imagePos.x, imagePos.y);

@@ -47,25 +47,22 @@ public:
     void detText(int n);
     void opCircle(int x);
     void flash(int area, int n);
-    void annotation(int n);
-    void cityPointDraw(int f, int t);
-    void cityPointDraw(int f, int t, int ex);
-    void cityPointDraw(int p);
-    void cityPointDrawWOFI(int f, int t);
-    void cityPointDrawWOFI(int f, int t, int ex);
-    void cityPointDrawWOFI(int p);
+    void annotation(int n, int alphaFrom, int alphaTo, float d);
+    void cityPointDraw(int f, int t, int alphaFrom, int alphaTo, float d);
+    void cityPointDraw(int f, int t, int ex, int alphaFrom, int alphaTo, float d);
+    void cityPointDraw(int p, int alphaFrom, int alphaTo, float d);
 
     ofxOscReceiver receiver;
     ofxOscSender sender;
     
-    enum Status { ST_BLWAIT, ST_TOARANIM, ST_ARWAIT, ST_TOCIANIM, ST_CIWAIT, ST_TODEANIM, ST_DEWAIT, ST_FADEOUT, ST_TEST };
+    enum Status { ST_BLWAIT, ST_TOARANIM, ST_ARWAIT, ST_TOCIANIM, ST_TOCIANIM_BK, ST_CIWAIT, ST_TODEANIM, ST_DEWAIT, ST_FADEOUT, ST_TEST };
     enum Status stat;
     
     float tick, timeStamp, mapScale, tickEnd, circleDia, timeStampDia, dia, imageScale;
     
     bool trigger, debug = true;
     
-    int value0, area, cityIndex, circleAlpha, frameStamp, cityFrom, cityTo, localTime;
+    int value0, area, cityIndex, circleAlpha, frameStamp, cityFrom, cityTo, localTime, alphaFrom, alphaTo, d;
 
     ofPath path1;
     
@@ -81,7 +78,7 @@ public:
     scAdjust = 2.37756;
     
     ofCamera cam;
-    ofVec3f pointToView, camPos;
+    ofVec3f pointToView, camPos, camPosBK;
     ofNode node;
     
     ofFbo fbo, maskFbo;
